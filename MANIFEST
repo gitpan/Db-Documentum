@@ -1,11 +1,10 @@
-MANIFEST
 CHANGES
 Documentum.pm
 Documentum.xs
 Documentum/Tools.pm
+MANIFEST
 Makefile.PL
 test.pl
-tools_test.pl
 README
 etc/dm_check_password.pl
 etc/dm_check_password_smb.pl

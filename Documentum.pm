@@ -13,7 +13,7 @@ require AutoLoader;
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw();
-$VERSION = '1.2';
+$VERSION = '1.3';
 
 @EXPORT_OK = qw(
 	dmAPIInit
@@ -54,7 +54,6 @@ sub AUTOLOAD {
 bootstrap Db::Documentum $VERSION;
 
 ## -----------------
-
 ## Automatic API initialization code
 die "\nERROR: Db::Documentum could not properly initialize the Documentum API interface.\n\n"
       unless dmAPIInit();
@@ -63,8 +62,7 @@ die "\nERROR: Db::Documentum could not properly initialize the Documentum API in
 END
 {  warn "\nWARNING: Db::Documentum could not properly de-initialize the Documentum API interface.\n\n"
       unless dmAPIDeInit();
-}   
-
+}
 ## -----------------
 
 1;
@@ -92,11 +90,11 @@ Db::Documentum - Perl extension for Documentum Client Libraries.
 
 =head1 DESCRIPTION
 
-The B<Db::Documentum> module provides a perl5 modular interface to the 
-client libraries for the Documentum Enterprise Document Management
-System (EDMS).  You must have already obtained the necessary libraries and
-purchased the necessary licenses from Documentum before you can build
-this module.  For more information on Documentum EDMS, see 
+The B<Db::Documentum> module provides a perl5 modular interface to the
+client API libraries for the Documentum Enterprise Document Management
+System (EDMS98 and 4i).  You must have already obtained the necessary
+libraries and purchased the necessary licenses from Documentum before
+you can build this module.  For more information on Documentum EDMS, see
 I<http://www.documentum.com/>
 
 This module provides an interface to the three listed API functions
@@ -105,10 +103,10 @@ use, as the bulk of the API is implemented as server methods accessed
 by one of the API commands.  The API commands differ only in what
 their return value is expected to be.  B<dmAPIExec> is expected to
 return a scalar (1 or 0) which can be evaluated to determine success (1 for
-success, 0 for failure).  B<dmAPISet> also return a scalar, but takes two 
+success, 0 for failure).  B<dmAPISet> also return a scalar, but takes two
 arguments, the method argument and the value to use.  B<dmAPIGet> takes a single
 argument and returns a string containing the results.  This string,
-which may contain an object or query collection identifier can be used later 
+which may contain an object or query collection identifier can be used later
 with other method calls.
 
 This module, by default, does not import all of its symbols into the calling
@@ -127,21 +125,21 @@ on how to interact with the Documentum server.
 
 =head1 WARRANTY
 
-There is none, implied, expressed, or otherwise.  We are providing this gratis, 
-out of the goodness of our hearts.  If it breaks, you get what you 
-paid for.  
+There is none, implied, expressed, or otherwise.  We are providing this gratis,
+out of the goodness of our hearts.  If it breaks, you get what you
+paid for.
 
 =head1 LICENSE
 
-The Documentum perl extension may be redistributed under the same terms as 
-Perl.  The Documentum EDMS is a commercial product.  The product name, 
-concepts, and even the mere thought of the product are the sole property of 
+The Documentum perl extension may be redistributed under the same terms as
+Perl.  The Documentum EDMS is a commercial product.  The product name,
+concepts, and even the mere thought of the product are the sole property of
 Documentum, Inc. and its shareholders.
 
 =head1 AUTHORS
 
 Brian W. Spolarich, ANS/UUNET WorldCom, C<briansp@ans.net>
-M. Scott Roth, Science Applications International Corporation, 
+M. Scott Roth, Science Applications International Corporation,
 C<Scott_Roth@saic-nmsd.com>
 
 =head1 SEE ALSO

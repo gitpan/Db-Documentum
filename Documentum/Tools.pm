@@ -9,7 +9,7 @@ require 5.004;
 
 @ISA = qw(Exporter);
 @EXPORT = qw();
-$VERSION = '1.2';
+$VERSION = '1.3';
 $error = "";
 
 @EXPORT_OK = qw(
@@ -17,9 +17,7 @@ $error = "";
 	dm_KrbConnect
 	dm_LastError
 	dm_LocateServer
-	dm_Find_Doc_By_Name
 	dm_Locate_Child
-	debugprint
 	dm_CreateType
 	dm_CreateObject
 	all
@@ -28,12 +26,12 @@ $error = "";
 
 %EXPORT_TAGS = (
 	ALL => [qw( dm_Connect dm_KrbConnect dm_LastError dm_LocateServer
-				dm_Find_Doc_By_Name dm_Locate_Child debugprint dm_CreateType
-				dm_CreateObject )],
+				dm_Locate_Child dm_CreateType dm_CreateObject )],
 	all => [qw( dm_Connect dm_KrbConnect dm_LastError dm_LocateServer
-				dm_Find_Doc_By_Name dm_Locate_Child debugprint dm_CreateType
-				dm_CreateObject)]
+				dm_Locate_Child dm_CreateType dm_CreateObject )]
 );
+
+$Db::Documentum::Tools::Delimiter = '::';
 
 # Connects to the given docbase with the given parameters, and
 # returns a session identifer.
@@ -42,21 +40,21 @@ sub dm_Connect($$$;$$) {
    my $username = shift;
    my $password = shift;
    undef my $session;
-   
+
    unless ($OS) {
       unless ($OS = $^O) {
 	      require Config;
 	      $OS = $Config::Config{'osname'};
       }
    }
-   
+
    if ($OS =~ /Win/i) {
       $session = dmAPIGet("connect,$docbase,$username,$password");
-   } else {       
+   } else {
 	   my $user_arg_1 = shift;
 	   my $user_arg_2 = shift;
 	   $session = dmAPIGet("connect,$docbase,$username,$password,$user_arg_1,$user_arg_2");
-	}	            				
+	}
 	return $session;
 }
 
@@ -81,7 +79,7 @@ sub dm_LastError (;$$$) {
 
 #
 # dm_KrbConnect - Obtains a documentum client session using a K4 session
-# 				  ticket.  Requires a compatible dm_check_password utility
+# 		  ticket.  Requires a compatible dm_check_password utility
 #                 on the server side.
 sub dm_KrbConnect ($;$) {
 	my($docbase,$username) = @_;
@@ -103,7 +101,7 @@ sub dm_KrbConnect ($;$) {
 	if(! $server_inaddr) {
 		${'error'} = "Unable to obtain server address.\n";
 	}
-	
+
 	my($client_hostname) = hostname();
 
 	if (! $client_hostname) {
@@ -154,7 +152,7 @@ sub dm_KrbConnect ($;$) {
 	}
 	my($session_key) = $creds->session;
 	my($key_schedule) = Krb4::get_key_sched($session_key);
-	
+
 	if (! $key_schedule) {
 		${'error'} = "Unable to obtain encryption key schedule: ";
 		${'error'} .= Krb4::get_err_txt($Krb4::error);
@@ -176,7 +174,7 @@ sub dm_KrbConnect ($;$) {
 #	print STDERR "server_addr:", inet_aton($server_inaddr), "\n";
 #	print STDERR "nonce_data: $nonce_data\n";
 #	print STDERR "nonce: $nonce\n";
-	
+
 	if (! $nonce) {
 		${'error'} = "Unable to obtain encrypt nonce: ";
 		${'error'} .= Krb4::get_err_txt($Krb4::error);
@@ -195,7 +193,7 @@ sub dm_KrbConnect ($;$) {
 
 #	print "nonce_encoded: $nonce_encoded\n";
 
-	# Okay.  Now we've got an encoded service ticket for this session.  
+	# Okay.  Now we've got an encoded service ticket for this session.
 	# Send it as our password to the documentum server for
 	# validation.  We include the nonce as both additional
 	# params, because connect doesn't seem the pass the first one properly.
@@ -223,50 +221,11 @@ sub dm_LocateServer ($) {
 	my($hostname) = dmAPIGet("get,apisession,$locator,i_host_name");
 
 	if (!$hostname) {
-		${'error'} = "Unable to get	a hostname (attr i_host_name) from docbroker for docbase [$docbase]\n";
+		${'error'} = "Unable to get a hostname (attr i_host_name) from docbroker for docbase [$docbase]\n";
 		return;
 	} else {
 		return $hostname;
 	}
-}
-
-sub debugprint ($) {
-	my($statement) = @_;
-	if ($main::debug) {
-		print "$statement";
-	}
-}
-
-# This is extraneous with the 'id' method. 
-# TODO:  Delete this silliness.
-sub dm_Find_Doc_By_Name ($$$$) {
-	my($ss,$obj_class,$name,$results) = @_;
-	my($query,$coll_id,$err_msg);
-
-	if (!$version) {
-	    $query = <<"EOQ";
-			SELECT r_object_id,object_name,title,i_chronicle_id FROM 
-			$obj_class WHERE object_name = '$name'
-EOQ
-	}
-	debugprint "Query: $query";
-	$coll_id = dmAPIGet("readquery,$ss,$query");
-	if (! $coll_id) {
-		return -1;
-	} else {
-		debugprint "coll_id: $coll_id\n";
-		while ( dmAPIExec("next,$ss,$coll_id") ) {
-			my($title) = dmAPIGet("get,$ss,$coll_id,title");
-			my($r_object_id) = dmAPIGet("get,$ss,$coll_id,r_object_id");
-			my($i_chronicle_id) = dmAPIGet("get,$ss,$coll_id,i_chronicle_id");
-			$$results{$r_object_id}{'title'} = $title;
-			$$results{$r_object_id}{'i_chronicle_id'} = $i_chronicle_id;
-		}
-	}
-	if (! dmAPIExec("close,$ss,$coll_id")) {
-		return -1;
-	}
-	if (! keys %{ $results }) { return(0); } else { return scalar keys %{ $results }; }
 }
 
 # Returns the object id (if any) of the object to which this object is
@@ -282,12 +241,12 @@ sub dm_Locate_Child ($$$) {
 }
 
 # Create a Documentum object and populate attributes.
-#     %ATTRS = (object_name =>  ['test_doc2'],
-#               title       =>  ['My Test Doc 2'],
-#               authors     =>  ['Scott 1','Scott 2'],
-#               keywords    =>  ['Scott','Test','Doc','2'],
-#               r_version_label => ['TEST']);                               
-#          
+#     %ATTRS = (object_name =>  'test_doc2',
+#               title       =>  'My Test Doc 2',
+#               authors     =>  'Scott 1::Scott 2',
+#               keywords    =>  'Scott::Test::Doc::2',
+#               r_version_label => 'TEST');
+#
 #     $doc_id = dm_CreateObject ("dm_document",%ATTRS);
 #
 sub dm_CreateObject($;%) {
@@ -295,18 +254,19 @@ sub dm_CreateObject($;%) {
    my $dm_type = shift;
    my %attrs = @_;
    my $api_stat = 1;
-   my $api_cmd;
-   my $repeat;
-   
+
    my $obj_id = dmAPIGet("create,c,$dm_type");
 
    if ($obj_id) {
-      foreach my $attr (keys %attrs) { 
-         $repeat = dmAPIGet("repeating,c,$obj_id,$attr");
-         $api_cmd = ($repeat) ? "append" : "set";
-         # process array at each key
-         foreach my $value (@{$attrs{$attr}}) { 
-            $api_stat = 0 unless dmAPISet("$api_cmd,c,$obj_id,$attr",$value);
+      foreach my $attr (keys %attrs) {
+         if(dmAPIGet("repeating,c,$obj_id,$attr")) {
+            my @r_attr = split($Db::Documentum::Tools::Delimiter,$attrs{$attr});
+            foreach (@r_attr) {
+                $api_stat = 0 unless dmAPISet("append,c,$obj_id,$attr",$_);
+            }
+         }
+         else {
+            $api_stat = 0 unless dmAPISet("set,c,$obj_id,$attr",$attrs{$attr});
          }
       }
    }
@@ -316,37 +276,37 @@ sub dm_CreateObject($;%) {
 }
 
 # Create a new Documentum object type.
-#                                                                       
-#     %field_defs = (cat_id    => 'char(16)',                           
-#                    loc       => 'char(64)',                           
-#                    editions  => 'char(6) REPEATING');                 
-#     dm_CreateType ("my_document","dm_document",%field_defs);          
+#
+#     %field_defs = (cat_id    => 'char(16)',
+#                    loc       => 'char(64)',
+#                    editions  => 'char(6) REPEATING');
+#     dm_CreateType ("my_document","dm_document",%field_defs);
 #
 sub dm_CreateType($$;%) {
-   
+
    my $name = shift;
    my $super_type = shift;
    my %field_defs = @_;
    my $sql_body = "";
-      
+
    if (keys %field_defs) {
       foreach my $field (keys %field_defs) {
          $sql_body .= "$field $field_defs{$field},";
       }
       $sql_body =~ s/\,$//;
       $sql_body = "($sql_body)";
-   }            
-         
+   }
+
    my $sql = "CREATE TYPE $name $sql_body WITH SUPERTYPE $super_type";
    my $api_stat =  dmAPIExec("execquery,c,,$sql");
-   
+
    if ($api_stat) {
       my $col_id = dmAPIGet("getlastcoll,c,");
       dmAPIExec("close,c,$col_id") if $col_id;
    }
-      
+
    return $api_stat;
-}         
+}
 1;
 __END__
 
@@ -360,7 +320,7 @@ Db::Documentum::Tools - Support functions for Db::Documentum.
 	use Db::Documentum::Tools qw(:all);
 
 	$session_id = dm_Connect($docbase,$user,$password);
-   -or-
+    -or-
 	$session_id = dm_Connect($docbase,$user,$password,
 	                         $user_arg_1,$user_arg_2);
 
@@ -372,9 +332,13 @@ Db::Documentum::Tools - Support functions for Db::Documentum.
 	-or-
 	$error_msg = dm_LastError($session_id,1);
 
-   $object_id = dm_CreateObject("dm_document",%ATTRS);
-   
-   $api_stat = dm_CreateType("my_document","dm_document",%field_defs);
+    $object_id = dm_CreateObject("dm_document",%ATTRS);
+    -or-
+    $object_id = dm_CreateObject("dm_document");
+
+    $api_stat = dm_CreateType("my_document","dm_document",%field_defs);
+    -or-
+    $api_stat = dm_CreateType("my_document","dm_document");
 
 	$session_id = dm_KrbConnect($docbase);
 
@@ -395,7 +359,7 @@ Documentum, Inc. and its shareholders.
 =head1 AUTHOR
 
 Brian W. Spolarich, ANS/UUNET WorldCom, C<briansp@ans.net>
-M. Scott Roth, Science Applications International Corporation, 
+M. Scott Roth, Science Applications International Corporation,
 C<Scott_Roth@saic-nmsd.com>
 
 =head1 SEE ALSO

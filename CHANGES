@@ -15,24 +15,24 @@ Revision history for Perl extension Db::Documentum.
 	  optional argument to dm_KrbConnect to satisfy my own
 	  needs for shared, anonymous accounts.
 	  Added corresponding code to dm_check_password.pl on server
-	  side to handle shared accounts. 
+	  side to handle shared accounts.
 	  Releasing as version 1.0 just so it doesn't look so beta.
 1.01  (same day) :-)
-	- Make test.pl better.  Fixed MANIFEST problem (I renamed CHANGES).
+	- Made test.pl better.  Fixed MANIFEST problem (I renamed CHANGES).
 	  It helps to test BEFORE you upload. :-)
-1.1   
-    - Added hooks and fixes for easy building under NT.  Added nicer
+1.1   Feb 18, 1999
+	- Added hooks and fixes for easy building under NT.  Added nicer
 	  non-Solaris OS handling in general to Makefile.PL.
     - Added dmAPIInit() and dmAPIDeinit() calls in module to automate
       this.  This will require programs that have these functions in
 	  them to remove them, as they're not necessary.
     - Cleaned up test suite and simplified it.
-1.2
-    - Moved automated dmAPIInit() and dmAPIDeInit() code out of .XS file 
-      and into .PM file.
-    - Restructured variable declarations in C preamble of XS code so it
-      compiles more easily on Win NT.
-    - Fixed dm_Connect() in Tools module to behave differently (correctly)
-      under UNIX and Win NT.
-    - Added dm_CreateType() and dm_CreateObject() to Tools module.
-    - Created tools_test.pl to test new features of Tools module.      
+1.2   Oct 13, 1999
+	- Added dm_CreateType and dm_CreateObject functions to Tools.pm.
+	- Further improvements to Makefile.PL.
+	- Added tools_test.pl to test Tools.pm functionality.
+1.3   March 02, 2000
+	- Added support for APIs with 4i -- no DFC support yet.
+	- Modified the test.pl script to include tests for the Tools.pm module.
+	- Changed the format of the %ATTRS hash from HoL to just a hash on the
+	  dm_CreateObject sub.
