@@ -7,3 +7,5 @@ Makefile.PL
 test.pl
 README
 etc/dm_check_password.pl
+etc/dm_check_password_smb.pl
+INSTALL

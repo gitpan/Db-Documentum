@@ -1,4 +1,4 @@
-Documentum Perl 5 Extension Version 1.0
+Documentum Perl 5 Extension Version 1.1
 ----------------------------------------
 
 This is the Documentum client library extention to Perl5.  I have used
@@ -7,9 +7,12 @@ worked on older versions of Perl...there's nothing in the XS interface
 that's particular to 5.004.  It will currently complain if you run
 this from anything before 5.004.
 
-This is more or less identical to version 0.92, but I wanted to release
-a 1.0 version so it didn't feel so 'beta'.  We've been using this interface
-for a while now without any problems.
+* IMPORTANT NOTE *
+This module has changed in one significant way from 1.01:  dmAPIInit()
+and dmAPIDeinit() are now called implicitly within the module.  As such
+your client programs do not need to call this.  Especially careful
+client code which may check the return status of these calls will 
+complain or fail, depending on what you're doing with the results.
 
 This version was built against version 3.15 of Documentum, but should
 work with older versions, as the API hasn't apparently changed much in 
@@ -30,18 +33,14 @@ Perl module building stuff:
 	make test
 	make install
 
-Note:  You will need to edit test.pl to provide your docbase name, userid,
-and password.  If you don't do this, the tests will fail.  The client
-libraries will locate your DocBroker from your dmcl.ini file, which should
-be pointed to via the DMCL_CONFIG environment variable.  So before
-building this module, I'd recommend setting DMCL_CONFIG to avoid any
-potential problems.  If you're concerned about docbase integrity, use
-a userid with limited privileges, and review my test.pl script.
-
-The test.pl script will connect to your docbase, generate a new
-document (from the dm_document class) and link it into the /Temp
-cabinet (its called "Perl Test".  You can destroy this document after the 
-tests have run, but this is an easy way to exercise all of the API functions.
+The test.pl script will prompt you for the information it needs,
+connect to your docbase, generate a new document 
+(from the dm_document class) and link it into the /Temp cabinet 
+(its called "Perl Test".  You can destroy this document after the tests 
+have run, but this is an easy way to exercise all of the API functions.
+If you're nervous about the test script doing evil things to your
+production docbase, point it at a test docbase, or write your
+own client code.  :-)
 
 This interface works much better than the sick, hacked version of
 Perl 5.001 that Documentum provides with the server.  This module
@@ -172,8 +171,12 @@ etc/dm_check_password.pl
 
 If you encounter problems with the module that appear to be confined
 to the module (or can't tell), please let me know.  If you find this
-module useful, let me know as well. 
+module useful, let us know as well. 
 
 Brian W. Spolarich
-ANS Communications
+UUNET Technologies
 <briansp@ans.net>
+
+Scott Roth
+SAIC
+<Scott_Roth@saic-nmsd.com>

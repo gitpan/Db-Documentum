@@ -20,3 +20,10 @@ Revision history for Perl extension Db::Documentum.
 1.01  (same day) :-)
 	- Make test.pl better.  Fixed MANIFEST problem (I renamed CHANGES).
 	  It helps to test BEFORE you upload. :-)
+1.1   
+    - Added hooks and fixes for easy building under NT.  Added nicer
+	  non-Solaris OS handling in general to Makefile.PL.
+    - Added dmAPIInit() and dmAPIDeinit() calls in module to automate
+      this.  This will require programs that have these functions in
+	  them to remove them, as they're not necessary.
+    - Cleaned up test suite and simplified it.

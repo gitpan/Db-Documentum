@@ -13,7 +13,7 @@ require AutoLoader;
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw();
-$VERSION = '1.01';
+$VERSION = '1.1';
 
 @EXPORT_OK = qw(
 	dmAPIInit
@@ -39,17 +39,23 @@ sub AUTOLOAD {
     ($constname = $AUTOLOAD) =~ s/.*:://;
     my $val = constant($constname, @_ ? $_[0] : 0);
     if ($! != 0) {
-	if ($! =~ /Invalid/) {
+	 if ($! =~ /Invalid/) {
 	    $AutoLoader::AUTOLOAD = $AUTOLOAD;
 	    goto &AutoLoader::AUTOLOAD;
-	}
-	else {
-		croak "Your vendor has not defined Db::Documentum macro $constname";
-	}
+	 }
+	 else {
+	    croak "Your vendor has not defined Db::Documentum macro $constname";
+	 }
     }
     eval "sub $AUTOLOAD { $val }";
     goto &$AUTOLOAD;
 }
+
+# Automatically de-initialize the DM client interface.
+
+END {  
+	print "\nWARNING: Db::Documentum could not properly de-initialize the API interface.\n\n" unless dmAPIDeInit(); 
+}   
 
 bootstrap Db::Documentum $VERSION;
 
@@ -70,8 +76,6 @@ Db::Documentum - Perl extension for Documentum Client Libraries.
 	use Db::Documentum;
 	use Db::Documentum qw(:all);
 
-	$scalar = dmAPIInit();
-
 	$string = dmAPIGet(<method>);
 	$string = dmAPIGet("connect,docbase,username,password");
 
@@ -80,8 +84,6 @@ Db::Documentum - Perl extension for Documentum Client Libraries.
 
 	$scalar = dmAPISet(<method>,<value>);
 	$scalar = dmAPISet("set,current,last,object_name","My Document");
-
-	$scalar = dmAPIDeInit();
 
 
 =head1 DESCRIPTION
@@ -135,9 +137,11 @@ Perl.  The Documentum EDMS is a commercial product.  The product name,
 concepts, and even the mere thought of the product are the sole property of 
 Documentum, Inc. and its shareholders.
 
-=head1 AUTHOR
+=head1 AUTHORS
 
 Brian W. Spolarich, ANS/UUNET WorldCom, C<briansp@ans.net>
+M. Scott Roth, Science Applications International Corporation, 
+C<Scott_Roth@saic-nmsd.com>
 
 =head1 SEE ALSO
 

@@ -6,7 +6,7 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; $numtests = 9 ; print "1..$numtests\n"; }
+BEGIN { $| = 1; $numtests = 7 ; print "1..$numtests\n"; }
 END {print "not ok 1 # Module load.\n" unless $loaded;}
 use Db::Documentum qw(:all);
 $loaded = 1;
@@ -19,88 +19,67 @@ sub dm_LastError {
     $level = '3' unless ($level);       # Set a default level to report.
     $session = 'apisession' unless ($session);
     my($message_text) = dmAPIGet("getmessage,$session,$level");
-    my(@message_list) = split('\n',$message_text);
-    my($return_data) = sprintf("%s\n",$message_list[0]);
-    $return_data;
+    $message_text;
 }
 
-$counter = 2;
-print "Enter the path to your DMCL_CONFIG file: "; chomp ($dmcl_config = <STDIN>);
+$counter = 2; $success = 1;
+
+if (! $ENV{'DMCL_CONFIG'}) {
+	print "Enter the path to your DMCL_CONFIG file: "; chomp ($dmcl_config = <STDIN>);
+	if (-r $dmcl_config) { $ENV{'DMCL_CONFIG'} = $dmcl_config; } 
+	else { die "Can't find DMCL_CONFIG '$dmcl_config': $!.  Exiting."; }
+} 
+
+print "Using '$ENV{'DMCL_CONFIG'}' as client config.\n";
 print "Docbase name: "; chomp ($docbase = <STDIN>);
 print "Username: "; chomp ($username = <STDIN>);
 print "Password: "; chomp ($password = <STDIN>);
 
-if (-r $dmcl_config) { $ENV{'DMCL_INI'} = $dmcl_config; } 
-else { die "Can't find DMCL_INI '$dmcl_config': $!.  Exiting."; }
-
-# Insert your test code below (better if it prints "ok 13"
-# (correspondingly "not ok 13") depending on the success of chunk 13
-# of the test code):
-
-# Test DM client library initialization.
-$result = dmAPIInit();
-if (! $result) {
-   print "not ";
-}
-print "ok $counter # DM client library initialization (dmAPIInit()).\n";
-$counter++;
+# Here's the bulk of our test suite.
 
 # Test DM client connect.
-$result = dmAPIGet("connect,$docbase,$username,$password");
-if (! $result) {
-   print "not ";
-}
-if (! $result) {
-	print dm_LastError();
-}
-
-print "ok $counter # DM client connection (dmAPIGet((connect)).\n";
-$counter++;
-
+do_it("connect,$docbase,$username,$password",NULL,"dmAPIGet",
+		"DM client connection");
 # Test DM object creation.
-$result = dmAPIGet("create,current,dm_document");
-if (! $result) {
-   print "not ";
-}
-print "ok $counter # DM object creation (dmAPIGet(create)).\n";
-$counter++;
-
+do_it("create,current,dm_document",NULL,"dmAPIGet","DM object creation");
 # Test DM set
-$result = dmAPISet("set,current,last,object_name","Perl Module Test");
-if (! $result) {
-   print "not ";
-}
-print "ok $counter # DM attribute set (dmAPISet(set)).\n";
-$counter++;
-
+do_it("set,current,last,object_name","Perl Module Test","dmAPISet",
+		"DM attribute set");
 # Test DM exec
-$result = dmAPIExec("link,current,last,/Temp");
-if (! $result) {
-   print "not ";
-}
-print "ok $counter # DM object link (dmAPIExec(link)).\n";
-$counter++;
-
+do_it("link,current,last,/Temp",NULL,"dmAPIExec","DM object link");
 # Test DM save
-$result = dmAPIExec("save,current,last");
-if (! $result) {
-   print "not ";
-}
-print "ok $counter # DM save (dmAPIExec(save)).\n";
-$counter++;
-
+do_it("save,current,last",NULL,"dmAPIExec","DM save.");
 # Test DM disconnect
-$result = dmAPIExec("disconnect,current");
-if (! $result) {
-   print "not ";
-}
-print "ok $counter # DM disconnect (dmAPIExec(disconnect)).\n";
-$counter++;
+do_it("disconnect,current",NULL,"dmAPIExec","DM disconnect.");
 
-# Test DM client library teardown
-$result = dmAPIDeInit();
-if (! $result) {
-   print "not ";
+if ($success == $numtests) {
+	print "\nAll tests completed successfully.\n";
+} else {
+	print "\nAll tests complete.  ", $numtests - $success, " of $numtests tests failed.\n";
+	print "If tests fail and the above error output is not helpful check your server logs.\n"; 
 }
-print "ok $counter # DM client library teardown (dmAPIDeInit()).\n";
-$counter++;
+
+sub do_it ($$$$) {
+	my($method,$value,$function,$description) = @_;
+	my($result);
+
+	if ($function eq 'dmAPIGet') {
+		$result = dmAPIGet($method);
+	} elsif ($function eq 'dmAPIExec') {
+		$result = dmAPIExec($method);
+	} elsif ($function eq 'dmAPISet') {
+		$result = dmAPISet($method,$value);
+	} else {
+		die "$0: Unknown function: $function";
+	}
+
+	if (! $result) { print "not "; }
+	print "ok $counter # $description [$function()]\n";
+
+	if ($result) { 
+		$success++; 
+	} else { 
+		print dm_LastError("current");	
+	}
+	$counter++;
+}

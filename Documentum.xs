@@ -24,8 +24,8 @@ char *name;
 int arg;
 {
     errno = 0;
-    switch (*name) {
-    }
+   switch (*name) {
+   }
     errno = EINVAL;
     return 0;
 
@@ -34,15 +34,19 @@ not_there:
     return 0;
 }
 
-
 MODULE = Db::Documentum		PACKAGE = Db::Documentum		
 
+BOOT:
+   if (!dmAPIInit())
+   { 
+      printf("\nERROR: Db::Documentum could not initialize the API interface.\n\n");
+      exit(-1);
+   }
 
 double
 constant(name,arg)
-	char *		name
+	char *	name
 	int		arg
-
 
 int
 dmAPIInit()
