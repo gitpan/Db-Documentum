@@ -13,7 +13,7 @@ require AutoLoader;
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw();
-$VERSION = '0.91';
+$VERSION = '0.92';
 
 @EXPORT_OK = qw(
 	dmAPIInit

@@ -1,6 +1,7 @@
 Changes
 Documentum.pm
 Documentum.xs
+Documentum/Tools.pm
 MANIFEST
 Makefile.PL
 test.pl

@@ -1,8 +1,12 @@
 Revision history for Perl extension Db::Documentum.
 
-0.01  Mon Feb 16 11:56:16 1998
+0.01  Mon Feb 16 11:56:16 1998 EST
 	- original version; created by h2xs 1.1.1.1
-0.9   Mon Feb 16 14:49:00 1998
+0.9   Mon Feb 16 14:49:00 1998 EST
 	- Initial public release version; created by briansp.
-0.91  Thu Feb 19 13:00:00 1998
+0.91  Thu Feb 19 13:00:00 1998 EST
 	- Renamed to Db::Documentum at request of PAUSE folks.
+0.92  Web Apr 01 15:30:00 1998 EST
+	- Added prototyping behavior to XSUB definitions.
+	  Added Db::Documentum::Tools.pm module.
+	  Included dm_check_password.pl with distribution.

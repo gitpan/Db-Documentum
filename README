@@ -1,10 +1,11 @@
-Documentum Perl 5 Extension Version 0.9
----------------------------------------
+Documentum Perl 5 Extension Version 0.92
+----------------------------------------
 
 This is the Documentum client library extention to Perl5.  I have used
 Perl 5.004_04 in making this extension, but wouldn't be surprised if it
 worked on older versions of Perl...there's nothing in the XS interface
-that's particular to 5.004.
+that's particular to 5.004.  It will currently complain if you run
+this from anything before 5.004.
 
 This version was built against version 3.15 of Documentum, but should
 work with older versions, as the API hasn't apparently changed much in 
@@ -42,6 +43,124 @@ This interface works much better than the sick, hacked version of
 Perl 5.001 that Documentum provides with the server.  This module
 doesn't dump core when errors are encountered (like a non-existent
 object attribute). 
+
+Documentum::Tools
+-----------------
+This is a set of helper functions that simplify a couple of repetitious
+tasks when writing a Documentum client application.  
+
+dm_Connect - 
+	Encapsulates the process of connecting to a docbase.  
+
+	Arguments:  docbase, username, and password are required.  Two
+		extra args are optional, and your dm_check_password program
+		(or equivalent) should be configured to do the right thing
+		with them.  See the etc/dm_check_password.pl program included
+		with this distribution for an example that uses Kerberos v4
+		service tickets to authenticate to Documentum.
+
+	Returns:  the session identifer on success.  Nothing on failure.
+
+dm_LastError -
+	Generic interface for evaluating the error log for the current
+	session.
+
+	Arguments: session identifier, error level, and number of entries
+		to report, all optional.  Session id defaults to 'apisession'
+		for handling connect() failures.  Error level defaults to 3, which
+		is a good choice in most situations, and number of entries 
+		defaults to 'all'.
+
+	Returns:  character string containing the error data, suitable for
+		printing to the user.
+
+dm_KrbConnect - 
+	Connects to Documentum and authenticates the user using a Kerberos
+	v4 service ticket.  This is fairly tricky stuff.  The library does a
+	bunch of Kerberos calls to obtain all of the necessary info to
+	build the service ticket.  The ticket is then encoded, along with
+	a nonce value used to prevent replay attacks, and sent to the
+	server.  A compatible dm_check_password program should be installed
+	on the server to decode and decrypt the session info.
+
+	You need to be fairly Kerberos-savvy to make this work.  The code is
+	fairly-well commented, but it does assume you have a working 
+	K4 KDC installed, and a service ticket entry in your server machine's 
+	srvtab.  I did my testing with the default rcmd.hostname@REALM ticket,
+	but now use documentum.hostname@REALM (which is how this code is
+	configured).  You'll need to configure the service in both the
+	client library code as well as the dm_check_password.pl program if
+	you want to change it.
+
+	The big problem with this code is that there is no good way to
+	map Kerberos problems to Documentum connect() error codes, and
+	reporting reporting Kerberos messages back to the user is not 
+	possible given the interface between the authentication program
+	and the user, which is simply the exit value of the program (0
+	on success, something else on failure).  Thus this may be
+	difficult to support if there are Kerberos problems.  The
+	client code does capture basic problems, like the user's TGT
+	having expired.
+
+	Arguments: docbase name (required)
+	Returns: The session identifier on success.  Nothing on failure.
+
+dm_LocateServer -
+	Locates the currently-active server for a particular docbase.
+
+	This is only really necessary since to obtain a Kerberos
+	service ticket, you must know the hostname of the machine you're
+	connecting to.  The Docbroker hides this layer from the user
+	by default, and this routine exposes it.  This only gets
+	called by dm_KrbConnect() in my implementation.
+
+	Arguments:  docbase name (required).
+	Returns:  Hostname for docbase on success.  Nothing on failure.
+
+
+etc/dm_check_password.pl
+------------------------
+	This Perl version of dm_check_password knows how to authenticate
+	users in the following ways:
+
+	1.  Local passwords in /etc/passwd (/etc/shadow, whatever).
+	2.  Against a Kerberos KDC using the user's kerberos password.
+	3.  Against a Kerberos KDC using the user's kerberos service ticket.
+
+	It should be installed setuid root with appropriate permissions.  See
+	the existing dm_check_password for the right settings.
+
+	Method #2 should be deprecated, given the fact that there doesn't
+	appear to be any session encryption between the documentum client
+	and server during the authentication phase.  Exposing your
+	kerberos password to the network is potentially hazardous to the
+	health of your network, and certain to make your network administrator
+	unhappy (or it should).
+
+	Checking works like this:
+
+	- If the user supplies the additional optional arguments to connect,
+	  the first one is ignored, and the second one is assumed to be
+	  the encrypted nonce for this session, as long as it is at least
+	  8 characters long.  We ignore the first one since the server
+	  doesn't appear to pass it properly.
+
+	- If a nonce is found, method 3 is tried (Kerberos service ticket).
+
+	- If a nonce is not found, the user is authenticated against the
+	  local passwd file.  If the user has a local entry, but the password
+	  does not match, the session is denied.
+
+	- If the user does not have a local passwd entry, then they are
+	  authenticated against the Kerberos KDC (a la krb_get_pw_in_tkt).
+	  If the password doesn't match here, the session is denied.
+
+	- If for some reason we don't exit before this point, the session
+	  is denied (just in case).
+
+	Error passing back to the user is pretty primitive.  Also I don't 
+	pay attention to any of the password-aging stuff.
+
 
 If you encounter problems with the module that appear to be confined
 to the module (or can't tell), please let me know.  If you find this

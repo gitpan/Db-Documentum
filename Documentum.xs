@@ -46,6 +46,7 @@ constant(name,arg)
 
 int
 dmAPIInit()
+	PROTOTYPE: 
 	CODE:
 		RETVAL = dmAPIInit();
 	OUTPUT:
@@ -53,6 +54,7 @@ dmAPIInit()
 
 int
 dmAPIDeInit()
+	PROTOTYPE: 
 	CODE:
 		RETVAL = dmAPIDeInit();
 	OUTPUT:
@@ -61,6 +63,7 @@ dmAPIDeInit()
 int
 dmAPIExec(cmd)
 	char *cmd
+	PROTOTYPE: $
 	CODE:
 		RETVAL = dmAPIExec(cmd);
 	OUTPUT:
@@ -69,6 +72,7 @@ dmAPIExec(cmd)
 char *
 dmAPIGet(cmd)
 	char *cmd
+	PROTOTYPE: $
 	CODE:
 		RETVAL = dmAPIGet(cmd);
 	OUTPUT:
@@ -78,6 +82,7 @@ int
 dmAPISet(name,value)
 	char *name
 	char *value
+	PROTOTYPE: $$
 	CODE:
 		RETVAL = dmAPISet(name, value);
 	OUTPUT:
