@@ -31,8 +31,15 @@ Revision history for Perl extension Db::Documentum.
 	- Added dm_CreateType and dm_CreateObject functions to Tools.pm.
 	- Further improvements to Makefile.PL.
 	- Added tools_test.pl to test Tools.pm functionality.
-1.3   March 02, 2000
+1.3   Feb 2000
 	- Added support for APIs with 4i -- no DFC support yet.
 	- Modified the test.pl script to include tests for the Tools.pm module.
 	- Changed the format of the %ATTRS hash from HoL to just a hash on the
 	  dm_CreateObject sub.
+1.4   September 2000
+    - Improved makefile.pl
+    - Included idql.pl in /etc.
+    - Added dm_CreatePath to Tools.pm
+    - Added dm_LocateServer to test.pl
+    - Created HTML versions of POD
+    

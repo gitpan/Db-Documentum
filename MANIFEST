@@ -8,4 +8,7 @@ test.pl
 README
 etc/dm_check_password.pl
 etc/dm_check_password_smb.pl
+etc/idql.pl
 INSTALL
+Documentum/Tools.html
+Documentum.html

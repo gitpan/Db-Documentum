@@ -1,3 +1,4 @@
+#!/usr/local/bin/perl -w
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
 
@@ -6,7 +7,7 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; $numtests = 10 ; print "1..$numtests\n"; }
+BEGIN { $| = 1; $numtests = 12 ; print "1..$numtests\n"; }
 END {print "not ok 1 # Modules load.\n" unless $loaded;}
 use Db::Documentum qw(:all);
 use Db::Documentum::Tools qw(:all);
@@ -35,27 +36,41 @@ print "\n\nTesting Db::Documentum module...\n";
 do_it("connect,$docbase,$username,$password",NULL,"dmAPIGet",
 		"DM client connection");
 # Test DM object creation.
-do_it("create,current,dm_document",NULL,"dmAPIGet","DM object creation");
+do_it("create,c,dm_document",NULL,"dmAPIGet","DM object creation");
 # Test DM set
-do_it("set,current,last,object_name","Perl Module Test","dmAPISet",
+do_it("set,c,last,object_name","Perl Module Test","dmAPISet",
 		"DM attribute set");
 # Test DM exec
-do_it("link,current,last,/Temp",NULL,"dmAPIExec","DM object link");
+do_it("link,c,last,/Temp",NULL,"dmAPIExec","DM object link");
 # Test DM save
-do_it("save,current,last",NULL,"dmAPIExec","DM save.");
+do_it("save,c,last",NULL,"dmAPIExec","DM save.");
 # Test DM disconnect
-do_it("disconnect,current",NULL,"dmAPIExec","DM disconnect.");
+do_it("disconnect,c",NULL,"dmAPIExec","DM disconnect.");
 
+###
 # Here is the Tools.pm test suite
+###
+
 print "\n\nTesting Db::Documentum::Tools module...\n";
-# Test dmConnect
+
+# Test dm_LocateServer
+$result = dm_LocateServer($docbase);
+tally_results($result,"dm_LocateServer","Locate Docbase server");
+
+# Test dm_Connect
 $result = dm_Connect($docbase,$username,$password);
 tally_results($result,"dm_Connect","Connection");
+
+# Test dm_CreatePath
+$result = dm_CreatePath('/Temp/Db-Documentum-Test');
+tally_results($result,"dm_CreatePath","Create a folder");
+
 # Test dm_CreateType
 %ATTRS = (cat_id   =>  'CHAR(16)',
           locale   =>  'CHAR(255) REPEATING');
 $result = dm_CreateType("my_document","dm_document",%ATTRS);
 tally_results($result,"dm_CreateType","Create new object type");
+
 # Test dm_CreateObject
 $delim = $Db::Documentum::Tools::Delimiter;
 %ATTRS = (object_name =>  'Perl Module Tools Test Doc',
@@ -63,8 +78,9 @@ $delim = $Db::Documentum::Tools::Delimiter;
           locale      =>  'Virginia'.$delim.'California'.$delim.'Ottawa');
 $result = dm_CreateObject("my_document",%ATTRS);
 tally_results($result,"dm_CreateObject","Create new object");
-dmAPIExec("link,current,last,/Temp");
-dmAPIExec("save,current,last");
+warn dm_LastError("c","3","all") unless dmAPIExec("link,c,$result,'/Temp/Db-Documentum-Test'");
+warn dm_LastError("c","3","all") unless dmAPIExec("save,c,$result");
+
 dmAPIExec("disconnect,c");
 
 # Test Summary
@@ -74,8 +90,10 @@ if ($success == $numtests) {
 	print "\nAll tests complete.  ", $numtests - $success, " of $numtests tests failed.\n";
 	print "If tests fail and the above error output is not helpful check your server logs.\n";
 }
+exit;
 
-sub do_it ($$$$) {
+
+sub do_it {
 	my($method,$value,$function,$description) = @_;
 	my($result);
 
@@ -106,3 +124,5 @@ sub tally_results {
 	}
 	$counter++;
 }
+
+

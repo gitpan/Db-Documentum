@@ -9,7 +9,7 @@ require 5.004;
 
 @ISA = qw(Exporter);
 @EXPORT = qw();
-$VERSION = '1.3';
+$VERSION = '1.4';
 $error = "";
 
 @EXPORT_OK = qw(
@@ -20,18 +20,21 @@ $error = "";
 	dm_Locate_Child
 	dm_CreateType
 	dm_CreateObject
+	dm_CreatePath
 	all
 	ALL
 );
 
 %EXPORT_TAGS = (
 	ALL => [qw( dm_Connect dm_KrbConnect dm_LastError dm_LocateServer
-				dm_Locate_Child dm_CreateType dm_CreateObject )],
+				dm_Locate_Child dm_CreateType dm_CreateObject dm_CreatePath)],
 	all => [qw( dm_Connect dm_KrbConnect dm_LastError dm_LocateServer
-				dm_Locate_Child dm_CreateType dm_CreateObject )]
+				dm_Locate_Child dm_CreateType dm_CreateObject dm_CreatePath)]
 );
 
-$Db::Documentum::Tools::Delimiter = '::';
+### Default string delimiter used by dm_CreateObject
+$Delimiter = '::';
+###
 
 # Connects to the given docbase with the given parameters, and
 # returns a session identifer.
@@ -208,24 +211,16 @@ sub dm_KrbConnect ($;$) {
 }
 
 # Find the active server for a given docbase.
-
+#
+#   $server = dm_LocateServer($docbase);
+#
 sub dm_LocateServer ($) {
-	my($docbase) = @_;
-	my($locator) = dmAPIGet("getservermap,apisession,$docbase");
+	my $docbase = shift;
+	my $locator = dmAPIGet("getservermap,apisession,$docbase");
+    my $hostname = dmAPIGet("get,apisession,$locator,i_host_name")
+        if ($locator);
 
-	if (! $locator) {
-		${'error'} = "Unable to get a locator object for docbase [$docbase]\n";
-		return;
-	}
-
-	my($hostname) = dmAPIGet("get,apisession,$locator,i_host_name");
-
-	if (!$hostname) {
-		${'error'} = "Unable to get a hostname (attr i_host_name) from docbroker for docbase [$docbase]\n";
-		return;
-	} else {
-		return $hostname;
-	}
+    return ($hostname) ? $hostname : undef;
 }
 
 # Returns the object id (if any) of the object to which this object is
@@ -241,6 +236,7 @@ sub dm_Locate_Child ($$$) {
 }
 
 # Create a Documentum object and populate attributes.
+#
 #     %ATTRS = (object_name =>  'test_doc2',
 #               title       =>  'My Test Doc 2',
 #               authors     =>  'Scott 1::Scott 2',
@@ -307,6 +303,60 @@ sub dm_CreateType($$;%) {
 
    return $api_stat;
 }
+
+# Create a new folder in the Docbase.
+#
+#     dm_CreatePath ('/Temp/Test/Unit-1');
+#
+sub dm_CreatePath($) {
+    my $path = shift;
+    
+    # Break path into heirarchical elements
+    my @dirs = split("/",$path);
+
+    my $dm_path = "";
+
+    # if it already exists, just return
+    my $dir_id = dmAPIGet("id,c,dm_folder where any r_folder_path = \'$path\'");
+    return $dir_id if $dir_id;
+
+    # Test each heirarchical path for existance
+    foreach my $dir (@dirs) {
+        if ($dir =~ /^\w/) {
+            $dm_path .= "/$dir";
+
+            # Does this partial path exist?
+            $dir_id = dmAPIGet("id,c,dm_folder where any r_folder_path = \'$dm_path\'");
+            
+            # If not, create it
+            if (! $dir_id) {
+                my %dir_attrs = ();
+                $dir_attrs{'object_name'} = $dir;
+
+                # Create the cabinet if needed                
+                if ($dm_path =~ /^\/[\w\d]+$/) {
+                    $dir_id = dm_CreateObject("dm_cabinet",%dir_attrs);
+                    return undef unless dmAPIExec("save,c,$dir_id");  
+                # Create a folder                      
+                } else {    
+                    $dir_id = dm_CreateObject("dm_folder",%dir_attrs);
+                    return undef unless $dir_id;
+
+                    # Link it to its parent
+                    my $folder_path = $dm_path;
+                    $folder_path =~ s/\/$dir$//;
+                    if ($folder_path =~ /\w+/) {
+                        return undef 
+                            unless dmAPIExec("link,c,$dir_id,\'$folder_path\'");
+                        return undef 
+                            unless dmAPIExec("save,c,$dir_id");
+                    }        
+                }
+            }
+        }
+    }
+    return $dir_id;
+}
 1;
 __END__
 
@@ -320,25 +370,21 @@ Db::Documentum::Tools - Support functions for Db::Documentum.
 	use Db::Documentum::Tools qw(:all);
 
 	$session_id = dm_Connect($docbase,$user,$password);
-    -or-
 	$session_id = dm_Connect($docbase,$user,$password,
 	                         $user_arg_1,$user_arg_2);
 
-	$error_msg = dm_LastError($session_id,$level,$number);
-	-or-
 	$error_msg = dm_LastError();
-	-or-
 	$error_msg = dm_LastError($session_id);
-	-or-
 	$error_msg = dm_LastError($session_id,1);
-
+	$error_msg = dm_LastError($session_id,$level,$number);
+	
     $object_id = dm_CreateObject("dm_document",%ATTRS);
-    -or-
     $object_id = dm_CreateObject("dm_document");
 
     $api_stat = dm_CreateType("my_document","dm_document",%field_defs);
-    -or-
     $api_stat = dm_CreateType("my_document","dm_document");
+    
+    $obj_id = dm_CreatePath('/Temp/Test/Unit-1');
 
 	$session_id = dm_KrbConnect($docbase);
 
@@ -364,6 +410,6 @@ C<Scott_Roth@saic-nmsd.com>
 
 =head1 SEE ALSO
 
-Db::Documentum, perl(1)
+Db::Documentum.
 
 =cut

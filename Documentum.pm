@@ -13,7 +13,7 @@ require AutoLoader;
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw();
-$VERSION = '1.3';
+$VERSION = '1.4';
 
 @EXPORT_OK = qw(
 	dmAPIInit
@@ -78,37 +78,37 @@ Db::Documentum - Perl extension for Documentum Client Libraries.
 	use Db::Documentum;
 	use Db::Documentum qw(:all);
 
-	$string = dmAPIGet(<method>);
-	$string = dmAPIGet("connect,docbase,username,password");
+	string = dmAPIGet(<method>);
+	$sessionID = dmAPIGet("connect,docbase,username,password");
 
-	$scalar = dmAPIExec(<method>);
-	$scalar = dmAPIExec("create,current,dm_document");
+	scalar = dmAPIExec(<method>);
+	$obj_id = dmAPIExec("create,c,dm_document");
 
-	$scalar = dmAPISet(<method>,<value>);
-	$scalar = dmAPISet("set,current,last,object_name","My Document");
+	scalar = dmAPISet(<method>,<value>);
+	$api_stat = dmAPISet("set,c,last,object_name","My Document");
 
 
 =head1 DESCRIPTION
 
-The B<Db::Documentum> module provides a perl5 modular interface to the
-client API libraries for the Documentum Enterprise Document Management
-System (EDMS98 and 4i).  You must have already obtained the necessary
-libraries and purchased the necessary licenses from Documentum before
-you can build this module.  For more information on Documentum EDMS, see
+The B<Db::Documentum> module provides a Perl interface to
+the client API libraries for the Documentum Enterprise Document
+Management System (EDMS98 and 4i). You must have already
+obtained the necessary libraries and purchased the necessary
+licenses from Documentum before you can build this module. For
+more information on Documentum EDMS, see
 I<http://www.documentum.com/>
 
-This module provides an interface to the three listed API functions
-above.  For most purposes, these are the only functions you need to
-use, as the bulk of the API is implemented as server methods accessed
-by one of the API commands.  The API commands differ only in what
-their return value is expected to be.  B<dmAPIExec> is expected to
-return a scalar (1 or 0) which can be evaluated to determine success (1 for
-success, 0 for failure).  B<dmAPISet> also return a scalar, but takes two
-arguments, the method argument and the value to use.  B<dmAPIGet> takes a single
-argument and returns a string containing the results.  This string,
-which may contain an object or query collection identifier can be used later
-with other method calls.
-
+This module provides an interface to the three listed API
+functions: B<dmAPIGet>, B<dmAPIExec>, and B<dmAPISet>. For most purposes,
+these are the only functions you need to use, as the bulk of the 
+API is implemented as server methods accessed by one of the API 
+commands. B<dmAPIExec> returns a scalar (1 or 0) which can be evaluated 
+to determine success (1 for success, 0 for failure). B<dmAPISet> also 
+returns a scalar, but takes two arguments, the method argument and the 
+value to use. B<dmAPIGet> takes a single argument and returns a string 
+containing the results. This string, which may contain an object or 
+query collection identifier can be used later with other method calls.
+    
 This module, by default, does not import all of its symbols into the calling
 package's namespace.  Therefore, the Documentum API commands must be
 called with the fully-qualified package path:

@@ -1,10 +1,9 @@
-Documentum Perl 5 Extension Version 1.3
-----------------------------------------
+README - Documentum Perl 5 Extension
+------------------------------------
 
-This is the Documentum client library extention to Perl5.  I have used
+This is the Documentum client library extention to Perl.  I have used
 Perl 5.005_03 build this extension, but I know it works on older versions;
-at least back to 5.004.  It will currently complain if you run it from
-anything before 5.004.
+at least back to 5.004. 
 
 * IMPORTANT NOTE *
 This module has changed in one significant way from 1.01:  dmAPIInit()
@@ -13,13 +12,13 @@ your client programs do not need to call this.  Especially careful
 client code which may check the return status of these calls will
 complain or fail, depending on what you're doing with the results.
 
-This version has been built and tested with Documentum versions 3.1.5, 3.1.6,
-and 4.0.2 (4i), but should work with older versions, as the API hasn't
-changed much in a long time.  The Makefile.PL will automatically write make
-files for NT and Solaris.  If you're using a different platform let me
-know what settings you use and I'll include them in the future.  Note:
-regardless of your OS, the paths in the Makefile.PL file may need to be tweaked
-depending upon your particular setup.
+This version has been built and tested with EDMS versions 3.1.5, 3.1.6, 98,
+and 4i versions 4.0.2,and 4.1 but should work with older versions, as the 
+API hasn't changed much in a long time.  The Makefile.PL will automatically
+write make files for NT and Solaris.  If you're using a different platform
+let us know what settings you use and we'll include them in the future.  
+Note: regardless of your OS, the paths in the Makefile.PL file may need to 
+be tweaked depending upon your particular setup.
 
 To build this extension, unpack the distribution, and edit Makefile.PL
 to point at your documentum client libraries.  Then do the typical
@@ -43,6 +42,7 @@ This interface works much better than the sick, hacked version of
 Perl 5.001 that Documentum provides with the server.  This module
 doesn't dump core when errors are encountered (like a non-existent
 object attribute).
+
 
 Documentum::Tools
 -----------------
@@ -112,6 +112,16 @@ dm_CreateType -
 
 	Returns: TRUE on success, FALSE on failure.
 
+dm_CreatePath -
+	Generic wrapper to create new folder heirarchies in Docbase.
+
+	Arguments: Scalar contianing path name.  
+	
+	For example,
+	$dir_id = dm_CreatePath ('/Temp/Testing/Unit-1');
+
+	Returns: r_object_id of folder or undef.
+	
 dm_KrbConnect -
 	Requires Krb4.pm from CPAN.  You'll want to comment out the
 	'use Krb4'; statement in the header of the library if you
@@ -204,13 +214,19 @@ etc/dm_check_password.pl
 	pay attention to any of the password-aging stuff.
 
 
+etc/idql.pl
+------------------------
+	This Perl version of the Interactive DQL Editor is provided for your
+	convenience and as an example of Db::Documentum programming power.
+	
+
 If you encounter problems with the module that appear to be confined
-to the module (or can't tell), please let me know.  If you find this
+to the module (or can't tell), please let us know.  If you find this
 module useful, let us know as well.
 
 Brian W. Spolarich
 UUNET Technologies
-<briansp@UU.NET>
+<briansp@ans.net>
 
 Scott Roth
 Science Applications International Corp.
