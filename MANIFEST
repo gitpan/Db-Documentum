@@ -12,5 +12,5 @@ etc/dm_check_password_smb.pl
 etc/idql.pl
 etc/tickler.pl
 etc/intro-db-dctm-1-2.pdf
-etc/Documentum.html
-etc/Tools.html
+Documentum.html
+Tools.html

@@ -52,5 +52,8 @@ Revision history for Perl extension Db::Documentum.
     - Updated idql.pl script
     - Updated PPM instllation
     - Included intro-db-dctm-1-2.pdf
-    
+1.52  January 2002
+    - Fixed "bug" in dm_Connect function that produced warning: 'Use of 
+      uninitialized value in concatenation (.) at...' on Solaris.  Thanks
+      Mark Faine for identifying it.
     

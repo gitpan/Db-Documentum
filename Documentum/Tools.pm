@@ -1,5 +1,8 @@
 package Db::Documentum::Tools;
 
+# Tools.pm
+# (c) 2002 MS Roth
+
 use Carp;
 use Exporter;
 use Socket;
@@ -9,7 +12,7 @@ require 5.004;
 
 @ISA = qw(Exporter);
 @EXPORT = qw();
-$VERSION = '1.51';
+$VERSION = '1.52';
 $error = "";
 
 @EXPORT_OK = qw(

@@ -1,5 +1,8 @@
 package Db::Documentum;
 
+# Documentum.pm
+# (c) 2002 MS Roth
+
 use strict;
 use Carp;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $AUTOLOAD);
@@ -13,7 +16,7 @@ require AutoLoader;
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw();
-$VERSION = '1.51';
+$VERSION = '1.52';
 
 @EXPORT_OK = qw(
 	dmAPIInit
