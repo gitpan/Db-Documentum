@@ -52,7 +52,7 @@ if ($OS =~ /Win/i) {
         print "directory on e-Content Server. I recommend copying it to the \n";
         print "$DM_LIB directory for simplicity.\n";
     }
-              
+
     print "\nEnter the path to the $dmcl library file:\n\t[$DM_LIB] ==>";
     chomp($ans = <STDIN>);
     if ($ans =~ /\w+/) {
@@ -84,7 +84,7 @@ if ($OS =~ /Win/i) {
 
     print "I recommend copying it to the \n$DM_INCLUDE ";
     print "directory for simplicity.\n";
-              
+
     print "\nEnter the path to the dmapp.h header file:\n\t[$DM_INCLUDE] ==>";
     chomp($ans = <STDIN>);
     if ($ans =~ /\w+/) {
@@ -98,18 +98,18 @@ if ($OS =~ /Win/i) {
         warn "\n*** WARNING *** Could not find $DM_INCLUDE\\dmapp.h.\nThe module will not make without " .
              "dmapp.h.\nPlease copy dmapp.h to the $DM_INCLUDE directory.\n";
     }
-    
+
     # get the CPP include and lib paths from the environment
     my $inc = $ENV{INCLUDE};
     warn "\n*** WARNING *** No INCLUDE environment variable found.  You may need to run VCVARS32.BAT" .
-         " before running nmake.\n" unless $inc;    
+         " before running nmake.\n" unless $inc;
     $inc = "-I\"" . join("\" -I\"",split(";",$inc)) . "\"";
-    
+
     my $lib = $ENV{LIB};
     warn "\n*** WARNING *** No LIB environment variable found.  You may need to run VCVARS32.BAT" .
          " before running nmake.\n" unless $lib;
     $lib = "-L\"" . join("\" -L\"",split(";",$lib)) . "\"";
-                
+
     # build all nmake parameters
     $CPP_INCS = $inc;
     $DM_INCLUDE = "-I\"$DM_INCLUDE\"";
@@ -140,10 +140,10 @@ elsif ( ($OS =~ /solaris/i) or ($OS =~ /aix/i) ) {
 	# Path to directory where dmapp.h lives.
 	$DM_INCLUDE = "-I$DM_HOME/include";
 
-	$DM_CLIENT_LIBS = "-L$DM_LIB -ldmapi -ldmupper -ldmlower -ldmcommon -ldmupper -lcompat";
+	$DM_CLIENT_LIBS = "-L$DM_LIB -ldmapi -ldmupper -ldmlower -ldmcommon -ldmupper -lcompat -l$dmcl";
 	$DM_RPC_LIBS = "-L$DM_LIB -lnwrpc -lnwstcp";
 	$OS_LIBS = "-lsocket -lnsl -lintl";
-	$CPP_LIBS = "-lC";
+	$CPP_LIBS = "";
 	$LD_LIBS = "-ldl";
 	$CPP_INC = "";
 	$CCFLAGS = "";
@@ -227,7 +227,7 @@ WriteMakefile(
 	: (),
 
 	# This is just here to make 'make dist' easier to run.
-	'dist' => { COMPRESS=>"gzip", SUFFIX=>"gz" }
+	'dist' => { COMPRESS=>"gzip -9f", SUFFIX=>"gz" }
 );
 
 # __EOF__

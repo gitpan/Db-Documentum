@@ -1,7 +1,7 @@
 package Db::Documentum;
 
 # Documentum.pm
-# (c) 2003 MS Roth
+# (c) 2004 M. Scott Roth
 
 use strict;
 use Carp;
@@ -16,7 +16,8 @@ require AutoLoader;
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw();
-$VERSION = '1.54';
+
+$VERSION = '1.6';
 
 @EXPORT_OK = qw(
 	dmAPIInit
@@ -62,8 +63,8 @@ die "\nERROR: Db::Documentum could not properly initialize the Documentum API in
       unless dmAPIInit();
 
 ## Automatic API de-initialization code
-END
-{  warn "\nWARNING: Db::Documentum could not properly de-initialize the Documentum API interface.\n\n"
+END {
+      warn "\nWARNING: Db::Documentum could not properly de-initialize the Documentum API interface.\n\n"
       unless dmAPIDeInit();
 }
 
@@ -71,10 +72,13 @@ END
 ## invoke with: perl -MDb::Documentum -e Db::Documentum::version
 
 sub version {
-	print "\n\nDb::Documentum version: $VERSION\n";
+	print "\n\nPerl version: $]\n";
+	print "Db::Documentum version: $VERSION\n";
 	print "DMCL version: " . dmAPIGet("get,apisession,apiconfig,r_dmcl_version") . "\n\n";
 }
 
+## -----------------
+##      <SDG><
 ## -----------------
 
 1;
@@ -83,22 +87,22 @@ __END__
 
 =head1 NAME
 
-Db::Documentum - Perl extension for Documentum Client Libraries.
+Db::Documentum - Documentum API interface for Perl.
 
 =head1 SYNOPSIS
 
-	use Db::Documentum;
 	use Db::Documentum qw(:all);
 
-	string = dmAPIGet(<method>);
+	scalar = dmAPIGet(<method>);
 	$sessionID = dmAPIGet("connect,docbase,username,password");
 
 	scalar = dmAPIExec(<method>);
-	$obj_id = dmAPIExec("create,c,dm_document");
+	$rv = dmAPIExec("next,c,$collection_id");
 
 	scalar = dmAPISet(<method>,<value>);
 	$api_stat = dmAPISet("set,c,last,object_name","My Document");
 
+    See scripts in /etc for more examples.
 
 =head1 DESCRIPTION
 
@@ -127,7 +131,7 @@ called with the fully-qualified package path:
 	Db::Documentum::dmAPIGet
 
 To use the module functions without having to supply the module name,
-use the second form of the "use" statement shown above:
+use the second form of the "use" statement shown here:
 
 	use Db::Documentum qw (:all);
 

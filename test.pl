@@ -1,17 +1,18 @@
-#!/usr/local/bin/perl -w
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl test.pl'
+#!/usr/local/bin/perl
+# Before 'make install' is performed this script should be runnable with
+# 'make test'. After 'make install' it should work as 'perl test.pl'
 
 ######################### We start with some black magic to print on failure.
 
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; $numtests = 12 ; print "1..$numtests\n"; }
+BEGIN { $| = 1; $numtests = 15 ; print "1..$numtests\n"; }
 END {print "not ok 1 # Modules load.\n" unless $loaded;}
 use Db::Documentum qw(:all);
 use Db::Documentum::Tools qw(:all);
 $loaded = 1;
+$|++;
 print "ok 1 # Modules load.\n";
 ######################### End of black magic.
 
@@ -22,18 +23,18 @@ $counter = 2;
 $success = 1;
 
 if (! $ENV{'DMCL_CONFIG'}) {
-	print "Enter the path to your DMCL_CONFIG file: "; 
+	print "Enter the path to your DMCL_CONFIG file: ";
 	chomp ($dmcl_config = <STDIN>);
-	
-	if (-r $dmcl_config) { 
+
+	if (-r $dmcl_config) {
 	    $ENV{'DMCL_CONFIG'} = $dmcl_config;
-	} else { 
+	} else {
 	    die "Can't find DMCL_CONFIG '$dmcl_config': $!.  Exiting.";
 	}
 }
 
 print "Using '$ENV{'DMCL_CONFIG'}' as client config.\n";
-print "Docbase name: "; 
+print "Docbase name: ";
 chomp ($docbase = <STDIN>);
 
 print "Username: ";
@@ -42,24 +43,33 @@ chomp ($username = <STDIN>);
 print "Password (*WARNING* password will be displayed in clear text): ";
 chomp ($password = <STDIN>);
 
-
 # Here's the bulk of our test suite.
 print "\n\nTesting Db::Documentum module...\n";
 
+# TEST 2
 # Test DM client connect.
 do_it("connect,$docbase,$username,$password",NULL,"dmAPIGet",
-		"DM client connection");
+		"API client connection");
+
+# TEST 3
 # Test DM object creation.
-do_it("create,c,dm_document",NULL,"dmAPIGet","DM object creation");
+do_it("create,c,dm_document",NULL,"dmAPIGet","API object creation");
+
+# TEST 4
 # Test DM set
 do_it("set,c,last,object_name","Perl Module Test","dmAPISet",
-		"DM attribute set");
+		"API attribute set");
+# TEST 5
 # Test DM exec
-do_it("link,c,last,/Temp",NULL,"dmAPIExec","DM object link");
+do_it("link,c,last,/Temp",NULL,"dmAPIExec","API object link");
+
+# TEST 6
 # Test DM save
-do_it("save,c,last",NULL,"dmAPIExec","DM save.");
+do_it("save,c,last",NULL,"dmAPIExec","API save.");
+
+# TEST 7
 # Test DM disconnect
-do_it("disconnect,c",NULL,"dmAPIExec","DM disconnect.");
+do_it("disconnect,c",NULL,"dmAPIExec","API disconnect.");
 
 ###
 # Here is the Tools.pm test suite
@@ -67,33 +77,57 @@ do_it("disconnect,c",NULL,"dmAPIExec","DM disconnect.");
 
 print "\n\nTesting Db::Documentum::Tools module...\n";
 
+# TEST 8
 # Test dm_LocateServer
 $result = dm_LocateServer($docbase);
-tally_results($result,"dm_LocateServer","Locate Docbase server");
+tally_results($result,"dm_LocateServer($docbase)","Locate Docbase server");
 
+# TEST 9
 # Test dm_Connect
 $result = dm_Connect($docbase,$username,$password);
-tally_results($result,"dm_Connect","Connection");
+tally_results($result,"dm_Connect($docbase,$username)","Connection");
 
+# TEST 10
 # Test dm_CreatePath
 $result = dm_CreatePath('/Temp/Db-Documentum-Test');
-tally_results($result,"dm_CreatePath","Create a folder");
+my $folder_id = $result;
+tally_results($result,"$folder_id=dm_CreatePath('/Temp/Db-Documentum-Test')","Create a folder");
 
+# TEST 11
 # Test dm_CreateType
 %ATTRS = (cat_id   =>  'CHAR(16)',
           locale   =>  'CHAR(255) REPEATING');
 $result = dm_CreateType("my_document","dm_document",%ATTRS);
-tally_results($result,"dm_CreateType","Create new object type");
+tally_results($result,"dm_CreateType('my_document')","Create new object type");
 
+# TEST 12
 # Test dm_CreateObject
 $delim = $Db::Documentum::Tools::Delimiter;
 %ATTRS = (object_name =>  'Perl Module Tools Test Doc',
           cat_id      =>  '1-2-3-4-5-6-7',
           locale      =>  'Virginia'.$delim.'California'.$delim.'Ottawa');
 $result = dm_CreateObject("my_document",%ATTRS);
-tally_results($result,"dm_CreateObject","Create new object");
-warn dm_LastError("c","3","all") unless dmAPIExec("link,c,$result,'/Temp/Db-Documentum-Test'");
-warn dm_LastError("c","3","all") unless dmAPIExec("save,c,$result");
+my $test_id = $result;
+dmAPIExec("link,c,$result,$folder_id");
+dmAPIExec("save,c,$result");
+tally_results($result,"$test_id=dm_CreateObject(my_document)","Create new object");
+
+# TEST 13
+# Test dm_Copy
+$result = dm_Copy($test_id);
+$result = dm_Copy($test_id,'/Temp/Db-Documentum-Test/Copy-Test');
+tally_results($result,"dm_Copy($test_id,/Temp/Db-Documentum-Test/Copy-Test)","Copy object");
+
+# TEST 14
+# Test dm_Move
+$result = dm_Move($test_id,'/Temp/Db-Documentum-Test/Move-Test');
+tally_results($result,"dm_Move($test_id,/Temp/Db-Documentum-Test/Move-Test)","Move object");
+
+# TEST 15
+# Test dm_Delete
+$result = dm_Delete($folder_id);
+tally_results($result,"dm_Delete($folder_id)","Delete object(s)");
+
 
 dmAPIExec("disconnect,c");
 
@@ -129,12 +163,14 @@ sub tally_results {
     my ($r,$f,$d) = @_;
 
     if (! $r) { print "not "; }
-	print "ok $counter # $d [$f()]\n";
+	print "ok $counter # $d [$f]\n";
 
 	if ($r) {
 		$success++;
 	} else {
+	    print "---------------------------\n";
 		print dm_LastError("c","3","all");
+	    print "---------------------------\n";
 	}
 	$counter++;
 }

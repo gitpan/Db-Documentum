@@ -1,18 +1,19 @@
 package Db::Documentum::Tools;
 
 # Tools.pm
-# (c) 2003 MS Roth
+# (c) 2004 M. Scott Roth
 
 use Carp;
 use Exporter;
 use Socket;
 use Sys::Hostname;
 use Db::Documentum qw(:all);
-require 5.004;
+##require 5.004;
 
 @ISA = qw(Exporter);
 @EXPORT = qw();
-$VERSION = '1.54';
+
+$VERSION = '1.6';
 $error = "";
 
 @EXPORT_OK = qw(
@@ -24,27 +25,37 @@ $error = "";
 	dm_CreateType
 	dm_CreateObject
 	dm_CreatePath
+	dm_Copy
+	dm_Delete
+	dm_Move
 	all
 	ALL
 );
 
 %EXPORT_TAGS = (
 	ALL => [qw( dm_Connect dm_KrbConnect dm_LastError dm_LocateServer
-				dm_Locate_Child dm_CreateType dm_CreateObject dm_CreatePath)],
+				dm_Locate_Child dm_CreateType dm_CreateObject dm_CreatePath
+				dm_Copy dm_Delete dm_Move)],
 	all => [qw( dm_Connect dm_KrbConnect dm_LastError dm_LocateServer
-				dm_Locate_Child dm_CreateType dm_CreateObject dm_CreatePath)]
+				dm_Locate_Child dm_CreateType dm_CreateObject dm_CreatePath
+				dm_Copy dm_Delete dm_Move)]
 );
 
-### Default string delimiter used by dm_CreateObject
+# ---------------------------------------------------------------------------
+# Defaults used by dm_CreateObject
+# ---------------------------------------------------------------------------
 $Delimiter = '::';
-###
+$TRUE = 1;
+$FALSE = 0;
 
+# ---------------------------------------------------------------------------
 # Connects to the given docbase with the given parameters, and
 # returns a session identifer.
 #
-#   $session = dm_Connect("docbase","user","password");
+#   Example: $session = dm_Connect("docbase","user","password");
 #
-sub dm_Connect($$$;$$) {
+# ---------------------------------------------------------------------------
+sub dm_Connect {
    my $docbase = shift;
    my $username = shift;
    my $password = shift;
@@ -67,18 +78,23 @@ sub dm_Connect($$$;$$) {
 	return $session;
 }
 
-
+# ---------------------------------------------------------------------------
 # Returns documentum error information.
 #
-#   print dm_LastError($session,3);
+#   Example: print dm_LastError($session,3);
 #
-sub dm_LastError (;$$$) {
-	my($session,$level,$number) = @_;
-	my($return_data);
+# ---------------------------------------------------------------------------
+sub dm_LastError {
+	my $session = shift;
+	my $level = shift;
+	my $number = shift;
+	my $return_data;
+
 	$session = 'apisession' unless ($session);
 	$level = '3' unless ($level);	# Set a default level to report.
 	$number = 'all' unless ($number);
-	my($message_text) = dmAPIGet("getmessage,$session,$level");
+
+	my $message_text = dmAPIGet("getmessage,$session,$level");
 	if ($number eq "all") {
 		$return_data = $message_text;
 	} else {
@@ -87,12 +103,13 @@ sub dm_LastError (;$$$) {
 			$return_data .= sprintf("%s\n",$message_list[$i]);
 		}
 	}
-	$return_data;
+	return $return_data;
 }
 
-
+# ---------------------------------------------------------------------------
 # Create a Documentum object and populate attributes.
 #
+#  Example:
 #     %ATTRS = (object_name =>  'test_doc2',
 #               title       =>  'My Test Doc 2',
 #               authors     =>  'Scott 1::Scott 2',
@@ -101,6 +118,7 @@ sub dm_LastError (;$$$) {
 #
 #     $doc_id = dm_CreateObject ("dm_document",%ATTRS);
 #
+# ---------------------------------------------------------------------------
 sub dm_CreateObject($;%) {
 
    my $dm_type = shift;
@@ -111,7 +129,7 @@ sub dm_CreateObject($;%) {
 
    if ($obj_id) {
       foreach my $attr (keys %attrs) {
-         if(dmAPIGet("repeating,c,$obj_id,$attr")) {
+         if (dmAPIGet("repeating,c,$obj_id,$attr")) {
             my @r_attr = split($Db::Documentum::Tools::Delimiter,$attrs{$attr});
             foreach (@r_attr) {
                 $api_stat = 0 unless dmAPISet("append,c,$obj_id,$attr",$_);
@@ -121,21 +139,24 @@ sub dm_CreateObject($;%) {
             $api_stat = 0 unless dmAPISet("set,c,$obj_id,$attr",$attrs{$attr});
          }
       }
+   } else {
+    $api_stat = 0;
    }
-   else { $api_stat = 0; }
 
    return (! $obj_id || ! $api_stat) ? undef : $obj_id;
 }
 
-
+# ---------------------------------------------------------------------------
 # Create a new Documentum object type.
 #
+#  Example:
 #     %field_defs = (cat_id    => 'char(16)',
 #                    loc       => 'char(64)',
 #                    editions  => 'char(6) REPEATING');
 #     $rv = dm_CreateType ("my_document","dm_document",%field_defs);
 #
-sub dm_CreateType($$;%) {
+# ---------------------------------------------------------------------------
+sub dm_CreateType {
 
    my $name = shift;
    my $super_type = shift;
@@ -161,12 +182,13 @@ sub dm_CreateType($$;%) {
    return $api_stat;
 }
 
-
-# Create a new folder in the Docbase.
+# ---------------------------------------------------------------------------
+# Create a new folder structure in the Docbase.
 #
-#     $path = dm_CreatePath ('/Temp/Test/Unit-1');
+#  Example:   $path = dm_CreatePath ('/Temp/Test/Unit-1');
 #
-sub dm_CreatePath($) {
+# ---------------------------------------------------------------------------
+sub dm_CreatePath {
     my $path = shift;
 
     # Break path into heirarchical elements
@@ -216,12 +238,13 @@ sub dm_CreatePath($) {
     return $dir_id;
 }
 
-
+# ---------------------------------------------------------------------------
 # Find the active server for a given docbase.
 #
-#   $server = dm_LocateServer($docbase);
+#   Example:  $server = dm_LocateServer($docbase);
 #
-sub dm_LocateServer ($) {
+# ---------------------------------------------------------------------------
+sub dm_LocateServer {
 	my $docbase = shift;
 	my $locator = dmAPIGet("getservermap,apisession,$docbase");
     my $hostname = dmAPIGet("get,apisession,$locator,i_host_name")
@@ -230,26 +253,205 @@ sub dm_LocateServer ($) {
     return ($hostname) ? $hostname : undef;
 }
 
-
+# ---------------------------------------------------------------------------
 # Returns the object id (if any) of the object to which this object is
 # a parent based on the relation type.
 #
-sub dm_Locate_Child ($$$) {
+#  Example:  $child = dm_Locate_Child($session,$object_id,$relation);
+#
+# ---------------------------------------------------------------------------
+sub dm_Locate_Child {
 	my($ss,$object_id,$relation_type) = @_;
 
 	my($relation_obj_id) = dmAPIGet("id,$ss,dm_relation where parent_id = '$object_id' and relation_name = '$relation_type'");
-	if (! $relation_obj_id) { return 0 ; }
+	if (! $relation_obj_id) {
+	    return $FALSE;
+	}
+
 	my($child_object_id) = dmAPIGet("get,$ss,$relation_obj_id,child_id");
-	if (! $child_object_id) { return -1; } # This is most likely an error.
-	$child_object_id;
+	if (! $child_object_id) {
+	     return $FALSE;
+	}
+
+	return $child_object_id;
 }
 
+# ---------------------------------------------------------------------------
+# Copies an object and optionally moves it to a new location specified by
+# $to_folder.  If $to_folder is undefined, the copy will reside with the
+# original.  Do not copy folders and cabinets with this routine.  Returns the
+# r_object_id of copy.
+#
+#  Example:  $object_id = dm_Copy($orig_obj_id, $to_folder);
+#
+#  Note:  $to_folder can be the r_object_id of the destination folder,
+#         or the full path (e.g., "/Temp/2004/Q1/Jan/15").  If the path
+#         does not exist, it is created by calling dm_CreatePath.
+#
+# ---------------------------------------------------------------------------
+sub dm_Copy {
+    my $orig_obj_id = shift;
+    my $to_folder = shift;
 
-# EXPERIMENTAL!!
-# dm_KrbConnect - Obtains a documentum client session using a K4 session
+    my $obj_id = dmAPIGet("saveasnew,c,$orig_obj_id");
+    return undef unless $obj_id;
+
+    if (defined $to_folder) {
+        dm_LastError("c","3","all") unless dm_Move($obj_id,$to_folder);
+    }
+
+    return $obj_id;
+}
+
+# ---------------------------------------------------------------------------
+# Moves an object from the location specified by $from_folder, to the location
+# specified by $to_folder.  If $from_folder is undefined, unlink from
+# all locations.  Returns true for success, false for failure.
+#
+#  Example:  $rv = dm_Move($object_id, $to_folder, $from_folder);
+#
+#  Note:  $to_folder can be the r_object_id of the destination folder,
+#         or the full path (e.g., "/Temp/2004/Q1/Jan/15").  If the path
+#         does not exist, it is created by calling dm_CreatePath.
+#
+#  Note:  $from_folder can be the r_object_id of the current folder or its
+#         full path (e.g., "/Temp/2004/Q2/Jun/1").
+#
+# ---------------------------------------------------------------------------
+sub dm_Move {
+    my $obj = shift;
+    my $to_folder = shift;
+    my $from_folder = shift;
+
+    # if to_folder is not an object id it must be a path
+    # use dm_CreatePath to get object id of folder
+    if ($to_folder !~ /\w{16}/) {
+        $to_folder = dm_CreatePath($to_folder);
+    }
+
+    # if to_folder doesn't point to a folder or cabinet, abort move operation
+    if ($to_folder !~ /^0[bc]/i) {
+        return $FALSE;
+    }
+
+    # check that $from_folder is valid if it is defined
+    if ($from_folder) {
+        if ($from_folder !~ /\w{16}/) {
+
+            # if not an id, assume from_folder is a path.  Get id of folder
+            if ($from_folder !~ /^\//) {
+                $from_folder = "\/$from_folder";
+            }
+            $from_folder = dmAPIGet("id,c,dm_folder where any r_folder_path = \'$from_folder\'");
+        }
+
+        # if from_folder doesn't point to a folder or cabinet, abort move operation
+        if ($from_folder !~ /^0[bc]/i) {
+            return $FALSE;
+        }
+    }
+
+    # link object to new location
+    return $FALSE unless dmAPIExec("link,c,$obj,$to_folder");
+    return $FALSE unless dmAPIExec("save,c,$obj");
+
+    # unlink object from previous location
+    if (defined $from_folder) {
+        return $FALSE unless dmAPIExec("unlink,c,$obj,$from_folder");
+        return $FALSE unless dmAPIExec("save,c,$obj");
+    } else {
+
+        # unlink from all previous locations
+        my $cnt = dmAPIGet("values,c,$obj,i_folder_id");
+
+        for (my $i = 0; $i < $cnt; $i ++) {
+            my $old_folder_id = dmAPIGet("get,c,$obj,i_folder_id[$i]");
+
+            if (defined $old_folder_id) {
+
+                # don't unlink from the link we just made
+                if ($old_folder_id ne $to_folder) {
+                    return $FALSE unless dmAPIExec("unlink,c,$obj,$old_folder_id");
+                    return $FALSE unless dmAPIExec("save,c,$obj");
+                }
+            }
+        }
+    }
+
+    return $TRUE;
+}
+
+# ---------------------------------------------------------------------------
+# Deletes the object specified by $obj_id.  If the optional $all argument is
+# set to true, will delete all versions of the object specified by $obj_id.
+# By default, $all is false.  If the object specified by $obj_id is a cabinet
+# or folder, this sub will execute a deep delete and remove all versions of
+# all objects contained in the cabinet or folder.  Returns true on success,
+# false on failure.
+#
+#  Example:  $rv = dm_Delete($obj_id, $all);
+#
+# ---------------------------------------------------------------------------
+sub dm_Delete {
+    my $obj_id = shift;
+    my $all = shift;
+    my $query;
+    my $col;
+
+    $all = $FALSE unless ($all);
+
+    # if not a cabinet or folder, just destroy object
+    if ($obj_id !~ /^0[bc]/) {
+        if ($all) {
+
+            # destroy all versions using DQL--it's easier
+            my $obj_chron_id = dmAPIGet("get,c,$obj_id,i_chronicle_id");
+            if ($obj_chron_id) {
+                $query = "delete dm_sysobject (all) objects where i_chronicle_id = '$obj_chron_id'";
+                $col = dmAPIGet("query,c,$query");
+
+                # get delete results
+                while (dmAPIExec("next,c,$col")) {
+                    return $FALSE unless dmAPIGet("get,c,$col,objects_deleted");
+                }
+                dmAPIExec("close,c,$col");
+            }
+        } else {
+            return $FALSE unless dmAPIExec("destroy,c,$obj_id");
+        }
+    } else {
+        # if obj_id is folder or cabinet do deep delete
+        $query = "select r_object_id from dm_sysobject (all) where folder(id('$obj_id'))";
+        $col = dmAPIGet("query,c,$query");
+        my @del_tree = ();
+
+        # build array with all objects returned in query
+        while (dmAPIExec("next,c,$col")) {
+            my $del_obj_id = dmAPIGet("get,c,$col,r_object_id");
+            push(@del_tree,$del_obj_id);
+        }
+        my $rv = dmAPIExec("close,c,$col");
+
+        # process array and recursively call dm_Delete to delete object
+        foreach my $id (@del_tree) {
+            return $FALSE unless dm_Delete($id);
+        }
+
+        # once the root folder is empty, delete it
+        return $FALSE unless dmAPIExec("destroy,c,$obj_id");
+    }
+    return $TRUE;
+}
+
+# ---------------------------------------------------------------------------
+# !! EXPERIMENTAL !!
+# dm_KrbConnect - Obtains a Documentum client session using a K4 session
 # 	ticket.  Requires a compatible dm_check_password utility
 #   on the server side.
 #
+#  Example:  $session = dm_KrbConnect($docbase,$username);
+#
+# ---------------------------------------------------------------------------
 sub dm_KrbConnect ($;$) {
 	my($docbase,$username) = @_;
 	my($service) = 'documentum';
@@ -376,6 +578,9 @@ sub dm_KrbConnect ($;$) {
 	}
 }
 
+## -----------------
+##      <SDG><
+## -----------------
 
 1;
 __END__
@@ -386,29 +591,43 @@ Db::Documentum::Tools - Support functions for Db::Documentum.
 
 =head1 SYNOPSIS
 
-	use Db::Documentum::Tools;
-	use Db::Documentum::Tools qw(:all);
+    use Db::Documentum::Tools qw(:all);
 
-	$session_id = dm_Connect($docbase,$user,$password);
-	$session_id = dm_Connect($docbase,$user,$password,
-	                         $user_arg_1,$user_arg_2);
+    $session_id = dm_Connect($docbase,$user,$password);
+    $session_id = dm_Connect($docbase,$user,$password,
+                             $user_arg_1,$user_arg_2);
 
-	$error_msg = dm_LastError();
-	$error_msg = dm_LastError($session_id);
-	$error_msg = dm_LastError($session_id,1);
-	$error_msg = dm_LastError($session_id,$level,$number);
+    $error_msg = dm_LastError();
+    $error_msg = dm_LastError($session_id);
+    $error_msg = dm_LastError($session_id,1);
+    $error_msg = dm_LastError($session_id,$level,$number);
 
-    	$object_id = dm_CreateObject("dm_document",%ATTRS);
-    	$object_id = dm_CreateObject("dm_document");
+    $object_id = dm_CreateObject("dm_document",%ATTRS);
+    $object_id = dm_CreateObject("dm_document");
 
-    	$api_stat = dm_CreateType("my_document","dm_document",%field_defs);
-    	$api_stat = dm_CreateType("my_document","dm_document");
+    $api_stat = dm_CreateType("my_document","dm_document",%field_defs);
+    $api_stat = dm_CreateType("my_document","dm_document");
 
-    	$obj_id = dm_CreatePath('/Temp/Test/Unit-1');
+    $obj_id = dm_CreatePath('/Temp/Test/Unit-1');
 
-	$session_id = dm_KrbConnect($docbase);
+    $hostname = dm_LocateServer($docbase);
 
-	$hostname = dm_LocateServer($docbase);
+    $child = dm_Locate_Child($session,$object_id,$relation);
+
+    $object_id = dm_Copy($orig_obj_id, $to_folder);
+    $object_id = dm_Copy($orig_obj_id, '/Temp/Test/Unit-1');
+
+    $rv = dm_Move($object_id, $to_folder);
+    $rv = dm_Move($object_id, '/Temp/Test/Unit-2');
+    $rv = dm_Move($object_id, $to_folder, $from_folder);
+    $rv = dm_Move($object_id, $to_folder, '/Temp/Test/Unit-1');
+    $rv = dm_Move($object_id, '/Temp/Test/Unit-2', $from_folder);
+    $rv = dm_Move($object_id, '/Temp/Test/Unit-2', '/Temp/Test/Unit-1');
+
+    $rv = dm_Delete($obj_id, $all);
+    $rv = dm_Delete($obj_id, 1);
+
+    See scripts in /etc for more examples.
 
 =head1 DESCRIPTION
 

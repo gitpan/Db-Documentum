@@ -23,10 +23,10 @@ Revision history for Perl extension Db::Documentum.
 1.1   Feb 18, 1999
 	- Added hooks and fixes for easy building under NT.  Added nicer
 	  non-Solaris OS handling in general to Makefile.PL.
-    	- Added dmAPIInit() and dmAPIDeinit() calls in module to automate
-      	  this.  This will require programs that have these functions in
+   	- Added dmAPIInit() and dmAPIDeinit() calls in module to automate
+   	  this.  This will require programs that have these functions in
 	  them to remove them, as they're not necessary.
-    	- Cleaned up test suite and simplified it.
+   	- Cleaned up test suite and simplified it.
 1.2   Oct 13, 1999
 	- Added dm_CreateType and dm_CreateObject functions to Tools.pm.
 	- Further improvements to Makefile.PL.
@@ -37,11 +37,11 @@ Revision history for Perl extension Db::Documentum.
 	- Changed the format of the %ATTRS hash from HoL to just a hash on the
 	  dm_CreateObject sub.
 1.4   September 2000
-    	- Improved makefile.pl
-    	- Included idql.pl in /etc.
-    	- Added dm_CreatePath to Tools.pm
-    	- Added dm_LocateServer to test.pl
-    	- Created HTML versions of POD
+  	- Improved makefile.pl
+   	- Included idql.pl in /etc.
+   	- Added dm_CreatePath to Tools.pm
+   	- Added dm_LocateServer to test.pl
+   	- Created HTML versions of POD
 1.5   February 2001
 	- Added "version" subroutine to Documentum.pm. Meant to be invoked at the
 	  command line with:  perl -MDb::Documentum -e Db::Documentum::version
@@ -63,9 +63,19 @@ Revision history for Perl extension Db::Documentum.
 1.54  July 2003
     - Corrected fatal logic error in dm_CreatePath sub that didn't create
       cabinets when necessary.
+    - Added Perl version to "version" subroutine in Documentum.pm.
     - Added installation data for HP-UX in Makefile.pl (thanks Jonas Linden
       for providing this info).
     - Tested with DMCL 5.2
-            
+1.6   September 2004
+    - Added dm_Copy subroutine to Tools module.  dm_Copy will copy a single
+      object to a new location.
+    - Added dm_Move subroutine to Tools module.  dm_Move will move a single
+      object, a folder of objects, or deep move a folder structure.
+    - Added dm_Delete subroutine to Tools module. dm_Delete will delete a single
+      object, a folder of objects, or deep delete a folder structure.
+    - Updated test.pl script to include dm_Copy, dm_Move, dm_Delete.
+    - Updated /etc scripts
+    - Tested with DMCL 5.2.5 SP2.
 
-          
+
