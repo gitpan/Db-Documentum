@@ -10,18 +10,17 @@ extern "C" {
 
 #include <dmapp.h>
 
-static int
-not_here(s)
-char *s;
+static
+int
+not_here(char *s)
 {
     croak("%s not implemented on this architecture", s);
     return -1;
 }
 
-static double
-constant(name, arg)
-char *name;
-int arg;
+static
+double
+constant(char *name, int arg)
 {
     errno = 0;
    switch (*name) {
@@ -36,17 +35,10 @@ not_there:
 
 MODULE = Db::Documentum		PACKAGE = Db::Documentum		
 
-BOOT:
-   if (!dmAPIInit())
-   { 
-      printf("\nERROR: Db::Documentum could not initialize the API interface.\n\n");
-      exit(-1);
-   }
-
 double
 constant(name,arg)
-	char *	name
-	int		arg
+	char *name
+	int	arg
 
 int
 dmAPIInit()

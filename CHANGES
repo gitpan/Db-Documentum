@@ -27,3 +27,12 @@ Revision history for Perl extension Db::Documentum.
       this.  This will require programs that have these functions in
 	  them to remove them, as they're not necessary.
     - Cleaned up test suite and simplified it.
+1.2
+    - Moved automated dmAPIInit() and dmAPIDeInit() code out of .XS file 
+      and into .PM file.
+    - Restructured variable declarations in C preamble of XS code so it
+      compiles more easily on Win NT.
+    - Fixed dm_Connect() in Tools module to behave differently (correctly)
+      under UNIX and Win NT.
+    - Added dm_CreateType() and dm_CreateObject() to Tools module.
+    - Created tools_test.pl to test new features of Tools module.      

@@ -27,8 +27,7 @@ if ($OS =~ /Win/i) {
 # Unix users (Solaris, AIX, and HP/UX) should look here.
 } elsif ( ($OS =~ /solaris/i) or ($OS =~ /aix/i) or ($OS =~ /hpux/i) ) {
 	# The path to your Documentum client installation.
-	#$DM_HOME = '/usr/local/documentum';
-	$DM_HOME = '/afs/ans.net/@sys/pkg/dmcl-3.15';
+	$DM_HOME = '/usr/local/documentum';
 	# If you've organized your Documentum libraries in the standard unix-y
 	# bin, lib, include fashion, then you should be all set.  Otherwise you
 	# may have to tweak these.
@@ -41,6 +40,7 @@ if ($OS =~ /Win/i) {
 	$OS_LIBS = "-lsocket -lnsl -lintl";
 	$CPP_LIBS = "-lC";
 	$LD_LIBS = "-ldl";
+	$CC = "gcc";
 # Otherwise you're out of luck.  Documentum doesn't support you, so how
 # can we?
 } else {
@@ -57,6 +57,8 @@ print "Configuring Db::Documentum for $OS...\n";
 WriteMakefile(
 	'NAME'	=> 'Db::Documentum',
 	'VERSION_FROM' => 'Documentum.pm', 
+	'CC' => $CC,
+	'LD' => $CC,
 	'LIBS'	=> ["$LD_LIBS $DM_CLIENT_LIBS $DM_RPC_LIBS $CPP_LIBS $OS_LIBS"],   
 
 # You can also link against the shared client library if you want.  You'll need

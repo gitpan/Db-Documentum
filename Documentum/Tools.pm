@@ -9,7 +9,7 @@ require 5.004;
 
 @ISA = qw(Exporter);
 @EXPORT = qw();
-$VERSION = '0.1';
+$VERSION = '1.2';
 $error = "";
 
 @EXPORT_OK = qw(
@@ -20,24 +20,44 @@ $error = "";
 	dm_Find_Doc_By_Name
 	dm_Locate_Child
 	debugprint
+	dm_CreateType
+	dm_CreateObject
 	all
 	ALL
 );
 
 %EXPORT_TAGS = (
 	ALL => [qw( dm_Connect dm_KrbConnect dm_LastError dm_LocateServer
-				dm_Find_Doc_By_Name dm_Locate_Child debugprint )],
+				dm_Find_Doc_By_Name dm_Locate_Child debugprint dm_CreateType
+				dm_CreateObject )],
 	all => [qw( dm_Connect dm_KrbConnect dm_LastError dm_LocateServer
-				dm_Find_Doc_By_Name dm_Locate_Child debugprint )]
+				dm_Find_Doc_By_Name dm_Locate_Child debugprint dm_CreateType
+				dm_CreateObject)]
 );
 
 # Connects to the given docbase with the given parameters, and
 # returns a session identifer.
-sub dm_Connect ($$$;$$) {
-	my($docbase,$username,$password,$user_arg_1,$user_arg_2) = @_;
-	my($session) = dmAPIGet("connect,$docbase,$username,$password,
-							$user_arg_1,$user_arg_2");
-	$session;
+sub dm_Connect($$$;$$) {
+   my $docbase = shift;
+   my $username = shift;
+   my $password = shift;
+   undef my $session;
+   
+   unless ($OS) {
+      unless ($OS = $^O) {
+	      require Config;
+	      $OS = $Config::Config{'osname'};
+      }
+   }
+   
+   if ($OS =~ /Win/i) {
+      $session = dmAPIGet("connect,$docbase,$username,$password");
+   } else {       
+	   my $user_arg_1 = shift;
+	   my $user_arg_2 = shift;
+	   $session = dmAPIGet("connect,$docbase,$username,$password,$user_arg_1,$user_arg_2");
+	}	            				
+	return $session;
 }
 
 # Returns documentum error information.
@@ -261,7 +281,72 @@ sub dm_Locate_Child ($$$) {
 	$child_object_id;
 }
 
+# Create a Documentum object and populate attributes.
+#     %ATTRS = (object_name =>  ['test_doc2'],
+#               title       =>  ['My Test Doc 2'],
+#               authors     =>  ['Scott 1','Scott 2'],
+#               keywords    =>  ['Scott','Test','Doc','2'],
+#               r_version_label => ['TEST']);                               
+#          
+#     $doc_id = dm_CreateObject ("dm_document",%ATTRS);
+#
+sub dm_CreateObject($;%) {
 
+   my $dm_type = shift;
+   my %attrs = @_;
+   my $api_stat = 1;
+   my $api_cmd;
+   my $repeat;
+   
+   my $obj_id = dmAPIGet("create,c,$dm_type");
+
+   if ($obj_id) {
+      foreach my $attr (keys %attrs) { 
+         $repeat = dmAPIGet("repeating,c,$obj_id,$attr");
+         $api_cmd = ($repeat) ? "append" : "set";
+         # process array at each key
+         foreach my $value (@{$attrs{$attr}}) { 
+            $api_stat = 0 unless dmAPISet("$api_cmd,c,$obj_id,$attr",$value);
+         }
+      }
+   }
+   else { $api_stat = 0; }
+
+   return (! $obj_id || ! $api_stat) ? undef : $obj_id;
+}
+
+# Create a new Documentum object type.
+#                                                                       
+#     %field_defs = (cat_id    => 'char(16)',                           
+#                    loc       => 'char(64)',                           
+#                    editions  => 'char(6) REPEATING');                 
+#     dm_CreateType ("my_document","dm_document",%field_defs);          
+#
+sub dm_CreateType($$;%) {
+   
+   my $name = shift;
+   my $super_type = shift;
+   my %field_defs = @_;
+   my $sql_body = "";
+      
+   if (keys %field_defs) {
+      foreach my $field (keys %field_defs) {
+         $sql_body .= "$field $field_defs{$field},";
+      }
+      $sql_body =~ s/\,$//;
+      $sql_body = "($sql_body)";
+   }            
+         
+   my $sql = "CREATE TYPE $name $sql_body WITH SUPERTYPE $super_type";
+   my $api_stat =  dmAPIExec("execquery,c,,$sql");
+   
+   if ($api_stat) {
+      my $col_id = dmAPIGet("getlastcoll,c,");
+      dmAPIExec("close,c,$col_id") if $col_id;
+   }
+      
+   return $api_stat;
+}         
 1;
 __END__
 
@@ -273,12 +358,23 @@ Db::Documentum::Tools - Support functions for Db::Documentum.
 
 	use Db::Documentum::Tools;
 	use Db::Documentum::Tools qw(:all);
-	$session_id = dm_Connect($docbase);
+
+	$session_id = dm_Connect($docbase,$user,$password);
+   -or-
+	$session_id = dm_Connect($docbase,$user,$password,
+	                         $user_arg_1,$user_arg_2);
 
 	$error_msg = dm_LastError($session_id,$level,$number);
+	-or-
 	$error_msg = dm_LastError();
+	-or-
 	$error_msg = dm_LastError($session_id);
+	-or-
 	$error_msg = dm_LastError($session_id,1);
+
+   $object_id = dm_CreateObject("dm_document",%ATTRS);
+   
+   $api_stat = dm_CreateType("my_document","dm_document",%field_defs);
 
 	$session_id = dm_KrbConnect($docbase);
 
@@ -286,8 +382,8 @@ Db::Documentum::Tools - Support functions for Db::Documentum.
 
 =head1 DESCRIPTION
 
-See the README that comes with this package.  These routines are likely
-to change.
+Db::Documentum::Tools is a collection of frequently used Documentum procedures
+encapsulated by Perl.
 
 =head1 LICENSE
 
@@ -298,7 +394,9 @@ Documentum, Inc. and its shareholders.
 
 =head1 AUTHOR
 
-Brian W. Spolarich, ANS Communications, C<briansp@ans.net>
+Brian W. Spolarich, ANS/UUNET WorldCom, C<briansp@ans.net>
+M. Scott Roth, Science Applications International Corporation, 
+C<Scott_Roth@saic-nmsd.com>
 
 =head1 SEE ALSO
 
