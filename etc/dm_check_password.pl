@@ -1,27 +1,17 @@
 #!/usr/local/bin/perl5.004
 
-# $Id: dm_check_password.pl,v 1.9 1998/04/01 19:59:31 briansp Exp briansp $
+# $Id: dm_check_password.pl,v 1.10 1998/06/29 19:59:20 briansp Exp briansp $
 
-# This program can be used in place of the default dm_check_password that
-# documentum supplies.  It must be installed setuid root, and should be
-# installed umode 4750, with the group set to the group of your 
-# documentum administration group (dmadmin, generally).  
-
-# See the README that came with this distribution for more info.
-# The dm_Krb_Tkt_Auth function requires a connect request with ticket
-# data presented by Db::Documentum::Tools::krb_Connect().  Read the 
-# docs for more info.
-
-# This module requires that these modules be present.
-use Krb4;				# Get this from CPAN.
-use Socket;				# Comes with 5.00x and later
-use Sys::Hostname;		# Comes with 5.00x and later
+use Krb4;
+use Socket;
+use Sys::Hostname;
 require 'getopts.pl';
-require 5.004;			# Only tested with 5.004
 
 # Define some constants.  
 $service = 'documentum';
 $srvtab = '/etc/krb-srvtab';
+$user_config = '/etc/dm_userconfig.conf';
+$program_name = 'dm_check_password.pl';
 
 # Debugging help.
 #$debug = 1;
@@ -201,6 +191,8 @@ sub dm_Krb_Tkt_Auth ($$$) {
 	$nonce_encoded =~ tr/+/ /;
 	$nonce_encoded =~ s/%([0-9a-fA-F]{2})/pack("c",hex($1))/ge;
 	$nonce_encrypted = unpack "u", $nonce_encoded;
+	
+	#print DEBUG "Got this far (1).\n";
 
 	my($hostname) = hostname();
 	if (! $hostname) {
@@ -213,6 +205,8 @@ sub dm_Krb_Tkt_Auth ($$$) {
 		$RESULT = $DM_EXT_APP_OS_ERROR;
 		return(0);
 	}
+	
+	#print DEBUG "Got this far (2).\n";
 
 	my($realm) = Krb4::realmofhost($hostname);
 	if (! $realm) {
@@ -225,6 +219,8 @@ sub dm_Krb_Tkt_Auth ($$$) {
 		$RESULT = $DM_EXT_APP_OS_ERROR;
 		return(0);
 	} 
+	
+	#print DEBUG "Got this far (3).\n";
 
 	my($auth_data) = Krb4::rd_req($ticket,$service,$phost,$srvtab);
 
@@ -236,14 +232,32 @@ sub dm_Krb_Tkt_Auth ($$$) {
 		$RESULT = $DM_EXT_APP_OS_ERROR;
 		return(0);
 	} 
+	#print DEBUG "Got this far (4).\n";
 	
-	# Check to make sure the username in the ticket matches the
-	# username in the request.
-	my($auth_username) = $auth_data->pname;
-	if ($auth_username ne $username) {
-		$RESULT = $DM_CHKPASS_BAD_LOGIN;
-		return(0);
+	my($principal) = $auth_data->pname;
+	my($instance) = $auth_data->pinst;
+	$auth_username = "$principal";
+	if ($instance) { $auth_username .= ".$instance"; }
+
+	# If we don't find a config file entry, make sure the user in the
+	# ticket matches the user in the auth request.
+	if (! $config_data{$username}) {
+		if ($auth_username ne $username) {
+			$RESULT = $DM_CHKPASS_BAD_LOGIN;
+			#print DEBUG "$auth_username <> $username\n";
+			return(0);
+		}
+	} else {
+	# Otherwise see if the config data permits the user to log in.
+		my($expr) = $config_data{$username};
+		if ($auth_username !~ m#$expr#) {
+			#print DEBUG "$auth_username !~ $expr\n";
+			$RESULT = $DM_CHKPASS_BAD_LOGIN;
+			#$RESULT = DM_EXT_APP_OS_ERROR;
+			return(0);
+		}
 	}
+	#print DEBUG "Got this far (5).\n";
 
 	# Check to make sure the ticket hasn't expired.
 	my($tkt_lifetime) = $auth_data->life;
@@ -303,6 +317,31 @@ sub dm_Krb_Tkt_Auth ($$$) {
 	return(1);
 }
 
+sub Parse_Config ($) {
+	my($config_file) = @_;
+	my(%config_data);
+
+	if (! -f $config_file) {
+		return(0);
+	}
+
+	if (! open(CONFIG, "$config_file")) {
+		print STDERR "$program_name: Unable to open config_file '$config_file': $!\n";
+		return(0);
+	}
+	while (<CONFIG>) {
+		next if ($_ =~ m/^#+/);
+		next if ($_ =~ m/^\s+/);
+		chomp;
+		my($dm_user,$krb_expr) = split ':',$_,2;
+		$config_data{$dm_user} = $krb_expr;
+	}
+	close CONFIG;
+
+	return %config_data;
+}
+
+
 ##############################################################################
 
 #print DEBUG `/usr/local/gnu/bin/date`;
@@ -321,6 +360,8 @@ $nonce_encoded = '' unless (length $nonce_encoded > 8);
 if ($debug) {
 	print DEBUG "$username : $password : $nonce_encoded\n";
 }
+
+%config_data = &Parse_Config($user_config);
 
 # First try to validate the user locally.
 if (! $nonce_encoded) {
@@ -348,6 +389,7 @@ if ($nonce_encoded) {
 		print DEBUG "dm_Krb_Tkt_Auth succeeded.\n" if ($debug);
 		exit($DM_EXT_APP_SUCCESS);
 	} else {
+	$RESULT = $DM_CHKPASS_BAD_LOGIN;
 		if ($RESULT) {
 			print DEBUG "dm_Krb_Tkt_Auth set RESULT($RESULT).  Exiting.\n" if ($debug);
 			exit($RESULT);

@@ -6,7 +6,7 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..9\n"; }
+BEGIN { $| = 1; $numtests = 9 ; print "1..$numtests\n"; }
 END {print "not ok 1 # Module load.\n" unless $loaded;}
 use Db::Documentum qw(:all);
 $loaded = 1;
@@ -25,11 +25,13 @@ sub dm_LastError {
 }
 
 $counter = 2;
+print "Enter the path to your DMCL_CONFIG file: "; chomp ($dmcl_config = <STDIN>);
+print "Docbase name: "; chomp ($docbase = <STDIN>);
+print "Username: "; chomp ($username = <STDIN>);
+print "Password: "; chomp ($password = <STDIN>);
 
-# Set these with a valid triplet for your docbase.
-$docbase = '';
-$username = '';
-$password = '';
+if (-r $dmcl_config) { $ENV{'DMCL_INI'} = $dmcl_config; } 
+else { die "Can't find DMCL_INI '$dmcl_config': $!.  Exiting."; }
 
 # Insert your test code below (better if it prints "ok 13"
 # (correspondingly "not ok 13") depending on the success of chunk 13

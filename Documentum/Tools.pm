@@ -17,13 +17,18 @@ $error = "";
 	dm_KrbConnect
 	dm_LastError
 	dm_LocateServer
+	dm_Find_Doc_By_Name
+	dm_Locate_Child
+	debugprint
 	all
 	ALL
 );
 
 %EXPORT_TAGS = (
-	ALL => [qw( dm_Connect dm_KrbConnect dm_LastError dm_LocateServer)],
-	all => [qw( dm_Connect dm_KrbConnect dm_LastError dm_LocateServer)]
+	ALL => [qw( dm_Connect dm_KrbConnect dm_LastError dm_LocateServer
+				dm_Find_Doc_By_Name dm_Locate_Child debugprint )],
+	all => [qw( dm_Connect dm_KrbConnect dm_LastError dm_LocateServer
+				dm_Find_Doc_By_Name dm_Locate_Child debugprint )]
 );
 
 # Connects to the given docbase with the given parameters, and
@@ -58,8 +63,8 @@ sub dm_LastError (;$$$) {
 # dm_KrbConnect - Obtains a documentum client session using a K4 session
 # 				  ticket.  Requires a compatible dm_check_password utility
 #                 on the server side.
-sub dm_KrbConnect ($) {
-	my($docbase) = @_;
+sub dm_KrbConnect ($;$) {
+	my($docbase,$username) = @_;
 	my($service) = 'documentum';
 	my($time) = time();
 	my($nonce_prefix) = "KERBEROS_V4_NONCE__";
@@ -80,6 +85,7 @@ sub dm_KrbConnect ($) {
 	}
 	
 	my($client_hostname) = hostname();
+
 	if (! $client_hostname) {
 		${'error'} = "Unable to obtain local hostname.";
 		return;
@@ -121,7 +127,11 @@ sub dm_KrbConnect ($) {
 		${'error'} .= " [$Krb4::error]\n";
 		return;
 	}
-	my($username) = $creds->pname;
+	# If the caller didn't specify a username to log in as, then
+	# use the one in their ticket (i.e. theirs).
+	if (! $username) {
+		$username = $creds->pname;
+	}
 	my($session_key) = $creds->session;
 	my($key_schedule) = Krb4::get_key_sched($session_key);
 	
@@ -199,6 +209,58 @@ sub dm_LocateServer ($) {
 		return $hostname;
 	}
 }
+
+sub debugprint ($) {
+	my($statement) = @_;
+	if ($main::debug) {
+		print "$statement";
+	}
+}
+
+# This is extraneous with the 'id' method. 
+# TODO:  Delete this silliness.
+sub dm_Find_Doc_By_Name ($$$$) {
+	my($ss,$obj_class,$name,$results) = @_;
+	my($query,$coll_id,$err_msg);
+
+	if (!$version) {
+	    $query = <<"EOQ";
+			SELECT r_object_id,object_name,title,i_chronicle_id FROM 
+			$obj_class WHERE object_name = '$name'
+EOQ
+	}
+	debugprint "Query: $query";
+	$coll_id = dmAPIGet("readquery,$ss,$query");
+	if (! $coll_id) {
+		return -1;
+	} else {
+		debugprint "coll_id: $coll_id\n";
+		while ( dmAPIExec("next,$ss,$coll_id") ) {
+			my($title) = dmAPIGet("get,$ss,$coll_id,title");
+			my($r_object_id) = dmAPIGet("get,$ss,$coll_id,r_object_id");
+			my($i_chronicle_id) = dmAPIGet("get,$ss,$coll_id,i_chronicle_id");
+			$$results{$r_object_id}{'title'} = $title;
+			$$results{$r_object_id}{'i_chronicle_id'} = $i_chronicle_id;
+		}
+	}
+	if (! dmAPIExec("close,$ss,$coll_id")) {
+		return -1;
+	}
+	if (! keys %{ $results }) { return(0); } else { return scalar keys %{ $results }; }
+}
+
+# Returns the object id (if any) of the object to which this object is
+# a parent based on the relation type.
+sub dm_Locate_Child ($$$) {
+	my($ss,$object_id,$relation_type) = @_;
+
+	my($relation_obj_id) = dmAPIGet("id,$ss,dm_relation where parent_id = '$object_id' and relation_name = '$relation_type'");
+	if (! $relation_obj_id) { return 0 ; }
+	my($child_object_id) = dmAPIGet("get,$ss,$relation_obj_id,child_id");
+	if (! $child_object_id) { return -1; } # This is most likely an error.
+	$child_object_id;
+}
+
 
 1;
 __END__

@@ -13,7 +13,7 @@ require AutoLoader;
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw();
-$VERSION = '0.92';
+$VERSION = '1.01';
 
 @EXPORT_OK = qw(
 	dmAPIInit
@@ -123,18 +123,21 @@ on how to interact with the Documentum server.
 
 There is none, implied, expressed, or otherwise.  I'm providing this gratis, 
 out of the goodness of my tiny little heart.  If it breaks, you get what you 
-pay for.  Talk to Documentum about supporting a Perl interface. :-)
+pay for.  Talk to Documentum about supporting a Perl interface. :-)  
+I heard a rumour that they might just use this module as the 'supported'
+interface if they can get it to work under NT, but you didn't hear it from
+me. :-)
 
 =head1 LICENSE
 
-The Documentum perl extension may be redistributed under the same terms as Perl.
-The Documentum EDMS is a commercial product.  The product name, concepts,
-and even the mere thought of the product are the sole property of 
+The Documentum perl extension may be redistributed under the same terms as 
+Perl.  The Documentum EDMS is a commercial product.  The product name, 
+concepts, and even the mere thought of the product are the sole property of 
 Documentum, Inc. and its shareholders.
 
 =head1 AUTHOR
 
-Brian W. Spolarich, ANS Communications, C<briansp@ans.net>
+Brian W. Spolarich, ANS/UUNET WorldCom, C<briansp@ans.net>
 
 =head1 SEE ALSO
 

@@ -1,4 +1,4 @@
-Documentum Perl 5 Extension Version 0.92
+Documentum Perl 5 Extension Version 1.0
 ----------------------------------------
 
 This is the Documentum client library extention to Perl5.  I have used
@@ -6,6 +6,10 @@ Perl 5.004_04 in making this extension, but wouldn't be surprised if it
 worked on older versions of Perl...there's nothing in the XS interface
 that's particular to 5.004.  It will currently complain if you run
 this from anything before 5.004.
+
+This is more or less identical to version 0.92, but I wanted to release
+a 1.0 version so it didn't feel so 'beta'.  We've been using this interface
+for a while now without any problems.
 
 This version was built against version 3.15 of Documentum, but should
 work with older versions, as the API hasn't apparently changed much in 
@@ -75,6 +79,10 @@ dm_LastError -
 		printing to the user.
 
 dm_KrbConnect - 
+	Requires Krb4.pm from CPAN.  You'll want to comment out the 
+	'use Krb4'; statement in the header of the library if you
+	don't plan on using this.
+
 	Connects to Documentum and authenticates the user using a Kerberos
 	v4 service ticket.  This is fairly tricky stuff.  The library does a
 	bunch of Kerberos calls to obtain all of the necessary info to

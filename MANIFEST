@@ -1,4 +1,4 @@
-Changes
+CHANGES
 Documentum.pm
 Documentum.xs
 Documentum/Tools.pm
@@ -6,3 +6,4 @@ MANIFEST
 Makefile.PL
 test.pl
 README
+etc/dm_check_password.pl

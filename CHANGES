@@ -10,3 +10,13 @@ Revision history for Perl extension Db::Documentum.
 	- Added prototyping behavior to XSUB definitions.
 	  Added Db::Documentum::Tools.pm module.
 	  Included dm_check_password.pl with distribution.
+1.0   Mon Jan 25 14:54:55 EST 1999
+	- Some changes to the Tools.pm module.  Added username
+	  optional argument to dm_KrbConnect to satisfy my own
+	  needs for shared, anonymous accounts.
+	  Added corresponding code to dm_check_password.pl on server
+	  side to handle shared accounts. 
+	  Releasing as version 1.0 just so it doesn't look so beta.
+1.01  (same day) :-)
+	- Make test.pl better.  Fixed MANIFEST problem (I renamed CHANGES).
+	  It helps to test BEFORE you upload. :-)
