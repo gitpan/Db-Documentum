@@ -9,7 +9,7 @@ require 5.004;
 
 @ISA = qw(Exporter);
 @EXPORT = qw();
-$VERSION = '1.4';
+$VERSION = '1.5';
 $error = "";
 
 @EXPORT_OK = qw(
@@ -378,13 +378,13 @@ Db::Documentum::Tools - Support functions for Db::Documentum.
 	$error_msg = dm_LastError($session_id,1);
 	$error_msg = dm_LastError($session_id,$level,$number);
 	
-    $object_id = dm_CreateObject("dm_document",%ATTRS);
-    $object_id = dm_CreateObject("dm_document");
+    	$object_id = dm_CreateObject("dm_document",%ATTRS);
+    	$object_id = dm_CreateObject("dm_document");
 
-    $api_stat = dm_CreateType("my_document","dm_document",%field_defs);
-    $api_stat = dm_CreateType("my_document","dm_document");
+    	$api_stat = dm_CreateType("my_document","dm_document",%field_defs);
+    	$api_stat = dm_CreateType("my_document","dm_document");
     
-    $obj_id = dm_CreatePath('/Temp/Test/Unit-1');
+    	$obj_id = dm_CreatePath('/Temp/Test/Unit-1');
 
 	$session_id = dm_KrbConnect($docbase);
 
@@ -404,7 +404,6 @@ Documentum, Inc. and its shareholders.
 
 =head1 AUTHOR
 
-Brian W. Spolarich, ANS/UUNET WorldCom, C<briansp@ans.net>
 M. Scott Roth, Science Applications International Corporation,
 C<Scott_Roth@saic-nmsd.com>
 

@@ -23,10 +23,10 @@ Revision history for Perl extension Db::Documentum.
 1.1   Feb 18, 1999
 	- Added hooks and fixes for easy building under NT.  Added nicer
 	  non-Solaris OS handling in general to Makefile.PL.
-    - Added dmAPIInit() and dmAPIDeinit() calls in module to automate
-      this.  This will require programs that have these functions in
+    	- Added dmAPIInit() and dmAPIDeinit() calls in module to automate
+      	  this.  This will require programs that have these functions in
 	  them to remove them, as they're not necessary.
-    - Cleaned up test suite and simplified it.
+    	- Cleaned up test suite and simplified it.
 1.2   Oct 13, 1999
 	- Added dm_CreateType and dm_CreateObject functions to Tools.pm.
 	- Further improvements to Makefile.PL.
@@ -37,9 +37,15 @@ Revision history for Perl extension Db::Documentum.
 	- Changed the format of the %ATTRS hash from HoL to just a hash on the
 	  dm_CreateObject sub.
 1.4   September 2000
-    - Improved makefile.pl
-    - Included idql.pl in /etc.
-    - Added dm_CreatePath to Tools.pm
-    - Added dm_LocateServer to test.pl
-    - Created HTML versions of POD
+    	- Improved makefile.pl
+    	- Included idql.pl in /etc.
+    	- Added dm_CreatePath to Tools.pm
+    	- Added dm_LocateServer to test.pl
+    	- Created HTML versions of POD
+1.5   February 2001
+	- Added "version" subroutine to Documentum.pm. Meant to be invoked at the
+	  command line with:  perl -MDb::Documentum -e Db::Documentum::version
+	- Added tickler.pl in /etc.
+	- Added intro-db-dctm-1-1.pdf in /etc.
+	  
     

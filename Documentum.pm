@@ -13,7 +13,7 @@ require AutoLoader;
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw();
-$VERSION = '1.4';
+$VERSION = '1.5';
 
 @EXPORT_OK = qw(
 	dmAPIInit
@@ -63,6 +63,15 @@ END
 {  warn "\nWARNING: Db::Documentum could not properly de-initialize the Documentum API interface.\n\n"
       unless dmAPIDeInit();
 }
+
+## output version information
+## invoke with: perl -MDb::Documentum -e Db::Documentum::version
+
+sub version {
+	print "\n\nDb::Documentum version: $VERSION\n";	
+	print "Documentum server version: " . dmAPIGet("get,apisession,apiconfig,r_dmcl_version") . "\n";
+}
+	
 ## -----------------
 
 1;
@@ -123,6 +132,9 @@ use the second form of the "use" statement shown above:
 That said, check your Documentum documentation for complete information
 on how to interact with the Documentum server.
 
+Check the version of this module with:
+	>perl -MDb::Documentum -e Db::Documentum::version
+	
 =head1 WARRANTY
 
 There is none, implied, expressed, or otherwise.  We are providing this gratis,
@@ -138,7 +150,6 @@ Documentum, Inc. and its shareholders.
 
 =head1 AUTHORS
 
-Brian W. Spolarich, ANS/UUNET WorldCom, C<briansp@ans.net>
 M. Scott Roth, Science Applications International Corporation,
 C<Scott_Roth@saic-nmsd.com>
 

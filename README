@@ -38,6 +38,9 @@ If you're nervous about the test script doing evil things to your
 production docbase, point it at a test docbase, or write your
 own client code.  :-)
 
+Check the version of this module with:
+	>perl -MDb::Documentum -e Db::Documentum::version
+
 This interface works much better than the sick, hacked version of
 Perl 5.001 that Documentum provides with the server.  This module
 doesn't dump core when errors are encountered (like a non-existent
@@ -218,15 +221,21 @@ etc/idql.pl
 ------------------------
 	This Perl version of the Interactive DQL Editor is provided for your
 	convenience and as an example of Db::Documentum programming power.
+
+
+etc/tickler.pl
+------------------------
+
+
+
+etc/intro-db-dctm-11.pdf
+------------------------
+
 	
 
 If you encounter problems with the module that appear to be confined
 to the module (or can't tell), please let us know.  If you find this
 module useful, let us know as well.
-
-Brian W. Spolarich
-UUNET Technologies
-<briansp@ans.net>
 
 Scott Roth
 Science Applications International Corp.
