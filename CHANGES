@@ -60,5 +60,12 @@ Revision history for Perl extension Db::Documentum.
     - Improved Makefile.PL to better handle windows directories containing
       spaces (thanks Erik Mayo), verify the existence of key libraies, and
       improved error checking.
+1.54  July 2003
+    - Corrected fatal logic error in dm_CreatePath sub that didn't create
+      cabinets when necessary.
+    - Added installation data for HP-UX in Makefile.pl (thanks Jonas Linden
+      for providing this info).
+    - Tested with DMCL 5.2
+            
 
           

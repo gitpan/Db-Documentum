@@ -1,7 +1,7 @@
 package Db::Documentum;
 
 # Documentum.pm
-# (c) 2002 MS Roth
+# (c) 2003 MS Roth
 
 use strict;
 use Carp;
@@ -16,7 +16,7 @@ require AutoLoader;
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw();
-$VERSION = '1.53';
+$VERSION = '1.54';
 
 @EXPORT_OK = qw(
 	dmAPIInit
@@ -104,11 +104,10 @@ Db::Documentum - Perl extension for Documentum Client Libraries.
 
 The B<Db::Documentum> module provides a Perl interface to
 the client API libraries for the Documentum Enterprise Document
-Management System (EDMS98 and 4i). You must have already
+Management System (EDMS98/4i/5). You must have already
 obtained the necessary libraries and purchased the necessary
 licenses from Documentum before you can build this module. For
-more information on Documentum EDMS, see
-I<http://www.documentum.com/>
+more information on Documentum, see I<http://www.documentum.com/>
 
 This module provides an interface to the three listed API
 functions: B<dmAPIGet>, B<dmAPIExec>, and B<dmAPISet>. For most purposes,

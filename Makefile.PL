@@ -10,13 +10,13 @@ unless ($OS = $^O) {
 print "Configuring Db::Documentum for $OS...\n\n";
 
 ##################################################################
-# *** Windows NT users should look here ***
+# *** Windows NT/2000/XP users should look here ***
 ##################################################################
 if ($OS =~ /Win/i) {
 
     print "Select a flavor:\n";
-    print "\t1) to build the module for EDMS98, or\n";
-    print "\t2) to build the module for Documentum 4i\n";
+    print "\t1) build the module for EDMS98\n";
+    print "\t2) build the module for Documentum 4i or 5\n";
     print "==>";
     chomp($ans = <STDIN>);
     if ($ans =~ /1/) {
@@ -38,7 +38,6 @@ if ($OS =~ /Win/i) {
     } else {
         ## noop;
     }
-
 
 	# Path to Documentum library (dmcl32.lib or dmcl40.lib).
 	$DM_LIB = "$DM_HOME\\shared";
@@ -77,13 +76,13 @@ if ($OS =~ /Win/i) {
     if ($dmcl =~ /32/) {
         print "The dmapp.h header file is located in the\n";
         print "docpage builder\\samples\\server\\unix\\c directory of the \n";
-        print "DocPage Builder CD.\n";
+        print "DocPage Builder CD.  ";
     } else {
         print "The dmapp.h header file is located in the \\share\\sdk\\include\n";
-        print "directory on the e-Content Server.\n";
+        print "directory on the e-Content Server.  ";
     }
 
-    print "I recommend copying it to the $DM_INCLUDE \n";
+    print "I recommend copying it to the \n$DM_INCLUDE ";
     print "directory for simplicity.\n";
               
     print "\nEnter the path to the dmapp.h header file:\n\t[$DM_INCLUDE] ==>";
@@ -120,12 +119,13 @@ if ($OS =~ /Win/i) {
 	$LD_LIBS = "";
 	$DM_RPC_LIBS = "";
 	$OS_LIBS = "";
+	$CCFLAGS = "";
 }
 
 ##################################################################
-# *** Unix users (Solaris, AIX, and HP/UX) should look here ***
+# *** Unix users (Solaris, AIX) should look here ***
 ##################################################################
-elsif ( ($OS =~ /solaris/i) or ($OS =~ /aix/i) or ($OS =~ /hpux/i) ) {
+elsif ( ($OS =~ /solaris/i) or ($OS =~ /aix/i) ) {
 
 	# The path to your Documentum client installation.
 	$DM_HOME = '/usr/local/documentum';
@@ -146,6 +146,35 @@ elsif ( ($OS =~ /solaris/i) or ($OS =~ /aix/i) or ($OS =~ /hpux/i) ) {
 	$CPP_LIBS = "-lC";
 	$LD_LIBS = "-ldl";
 	$CPP_INC = "";
+	$CCFLAGS = "";
+}
+
+##################################################################
+# *** HP Unix (HP-UX) users should look here ***
+##################################################################
+
+elsif ($OS =~ /hpux/i) {
+
+	# The path to your Documentum client installation.
+	$DM_HOME = '/usr/local/documentum';
+
+	# If you've organized your Documentum libraries in the standard unix-y
+	# bin, lib, include fashion, then you should be all set.  Otherwise you
+	# may have to tweak these.
+
+	# Path to documentum client libraries.
+	$DM_LIB = "$DM_HOME/lib";
+
+	# Path to directory where dmapp.h lives.
+	$DM_INCLUDE = "-I$DM_HOME/include";
+
+	$DM_CLIENT_LIBS = "-L$DM_LIB -ldmcl40 -lc";
+	$DM_RPC_LIBS = "-L$DM_LIB -lnwrpc -lnwstcp";
+	$OS_LIBS = "-lsocket -lnsl -lintl";
+	$CPP_LIBS = "-lC";
+	$LD_LIBS = "-ldl";
+	$CPP_INC = "";
+	$CCFLAGS = '+DA1.1 +DS2.0 -ext -D_REENTRANT -D_PTHREAD_DRAFT4 -DSYSV -Dhpux -Dunix=unix -DOS_UNIX -DTHREADED_UNIX -DVDK_CE_ANSI -DEBHPUX +Z -Wl,+s,-E -D_POSIX_C_SOURCE=199506L -w +W829 -D_HPUX_SOURCE'
 }
 
 ##################################################################
@@ -165,7 +194,8 @@ print "DM_CLIENT_LIBS = $DM_CLIENT_LIBS\n";
 print "CPP_LIBS = $CPP_LIBS\n";
 print "LD_LIBS = $LD_LIBS\n";
 print "DM_RPC_LIBS = $DM_RPC_LIBS\n";
-print "OS_LIBS = $OS_LIBS\n\n";
+print "OS_LIBS = $OS_LIBS\n";
+print "CCFLAGS = $CCFLAGS\n\n";
 
 # write makefile
 
@@ -184,8 +214,9 @@ WriteMakefile(
 # the one above if you want to use the shared libraries.
 #    'LIBS'	=> ["-lC -ldmcl -lc"],
 
-	'DEFINE'	=> '-DSQLNETV2 -DSYSV -D$OS -DOS_UNIX',
-	'INC'	=> "$DM_INCLUDE $CPP_INCS",
+	'DEFINE'  => '-DSQLNETV2 -DSYSV -D$OS -DOS_UNIX',
+	'INC'	  => "$DM_INCLUDE $CPP_INCS",
+	'CCFLAGS' => $CCFLAGS,
 
 	# This makes 'make ppd' happy
 	($] ge '5.005')

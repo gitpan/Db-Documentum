@@ -1,7 +1,7 @@
 package Db::Documentum::Tools;
 
 # Tools.pm
-# (c) 2002 MS Roth
+# (c) 2003 MS Roth
 
 use Carp;
 use Exporter;
@@ -12,7 +12,7 @@ require 5.004;
 
 @ISA = qw(Exporter);
 @EXPORT = qw();
-$VERSION = '1.53';
+$VERSION = '1.54';
 $error = "";
 
 @EXPORT_OK = qw(
@@ -41,6 +41,9 @@ $Delimiter = '::';
 
 # Connects to the given docbase with the given parameters, and
 # returns a session identifer.
+#
+#   $session = dm_Connect("docbase","user","password");
+#
 sub dm_Connect($$$;$$) {
    my $docbase = shift;
    my $username = shift;
@@ -64,7 +67,11 @@ sub dm_Connect($$$;$$) {
 	return $session;
 }
 
+
 # Returns documentum error information.
+#
+#   print dm_LastError($session,3);
+#
 sub dm_LastError (;$$$) {
 	my($session,$level,$number) = @_;
 	my($return_data);
@@ -83,10 +90,166 @@ sub dm_LastError (;$$$) {
 	$return_data;
 }
 
+
+# Create a Documentum object and populate attributes.
 #
+#     %ATTRS = (object_name =>  'test_doc2',
+#               title       =>  'My Test Doc 2',
+#               authors     =>  'Scott 1::Scott 2',
+#               keywords    =>  'Scott::Test::Doc::2',
+#               r_version_label => 'TEST');
+#
+#     $doc_id = dm_CreateObject ("dm_document",%ATTRS);
+#
+sub dm_CreateObject($;%) {
+
+   my $dm_type = shift;
+   my %attrs = @_;
+   my $api_stat = 1;
+
+   my $obj_id = dmAPIGet("create,c,$dm_type");
+
+   if ($obj_id) {
+      foreach my $attr (keys %attrs) {
+         if(dmAPIGet("repeating,c,$obj_id,$attr")) {
+            my @r_attr = split($Db::Documentum::Tools::Delimiter,$attrs{$attr});
+            foreach (@r_attr) {
+                $api_stat = 0 unless dmAPISet("append,c,$obj_id,$attr",$_);
+            }
+         }
+         else {
+            $api_stat = 0 unless dmAPISet("set,c,$obj_id,$attr",$attrs{$attr});
+         }
+      }
+   }
+   else { $api_stat = 0; }
+
+   return (! $obj_id || ! $api_stat) ? undef : $obj_id;
+}
+
+
+# Create a new Documentum object type.
+#
+#     %field_defs = (cat_id    => 'char(16)',
+#                    loc       => 'char(64)',
+#                    editions  => 'char(6) REPEATING');
+#     $rv = dm_CreateType ("my_document","dm_document",%field_defs);
+#
+sub dm_CreateType($$;%) {
+
+   my $name = shift;
+   my $super_type = shift;
+   my %field_defs = @_;
+   my $sql_body = "";
+
+   if (keys %field_defs) {
+      foreach my $field (keys %field_defs) {
+         $sql_body .= "$field $field_defs{$field},";
+      }
+      $sql_body =~ s/\,$//;
+      $sql_body = "($sql_body)";
+   }
+
+   my $sql = "CREATE TYPE $name $sql_body WITH SUPERTYPE $super_type";
+   my $api_stat =  dmAPIExec("execquery,c,,$sql");
+
+   if ($api_stat) {
+      my $col_id = dmAPIGet("getlastcoll,c,");
+      dmAPIExec("close,c,$col_id") if $col_id;
+   }
+
+   return $api_stat;
+}
+
+
+# Create a new folder in the Docbase.
+#
+#     $path = dm_CreatePath ('/Temp/Test/Unit-1');
+#
+sub dm_CreatePath($) {
+    my $path = shift;
+
+    # Break path into heirarchical elements
+    my @dirs = split("/",$path);
+
+    my $dm_path = "";
+
+    # if it already exists, just return
+    my $dir_id = dmAPIGet("id,c,dm_folder where any r_folder_path = \'$path\'");
+    return $dir_id if $dir_id;
+
+    # Test each heirarchical path for existance
+    foreach my $dir (@dirs) {
+        if ($dir =~ /^\w/) {
+            $dm_path .= "/$dir";
+
+            # Does this partial path exist?
+            $dir_id = dmAPIGet("id,c,dm_folder where any r_folder_path = \'$dm_path\'");
+
+            # If not, create it
+            if (! $dir_id) {
+                my %dir_attrs = ();
+                $dir_attrs{'object_name'} = $dir;
+
+                # Create the cabinet if needed
+                if ($dm_path eq "/$dir") {
+                    $dir_id = dm_CreateObject("dm_cabinet",%dir_attrs);
+                    return undef unless dmAPIExec("save,c,$dir_id");
+                # Create a folder
+                } else {
+                    $dir_id = dm_CreateObject("dm_folder",%dir_attrs);
+                    return undef unless $dir_id;
+
+                    # Link it to its parent
+                    my $folder_path = $dm_path;
+                    $folder_path =~ s/\/$dir$//;
+                    if ($folder_path =~ /\w+/) {
+                        return undef
+                            unless dmAPIExec("link,c,$dir_id,\'$folder_path\'");
+                        return undef
+                            unless dmAPIExec("save,c,$dir_id");
+                    }
+                }
+            }
+        }
+    }
+    return $dir_id;
+}
+
+
+# Find the active server for a given docbase.
+#
+#   $server = dm_LocateServer($docbase);
+#
+sub dm_LocateServer ($) {
+	my $docbase = shift;
+	my $locator = dmAPIGet("getservermap,apisession,$docbase");
+    my $hostname = dmAPIGet("get,apisession,$locator,i_host_name")
+        if ($locator);
+
+    return ($hostname) ? $hostname : undef;
+}
+
+
+# Returns the object id (if any) of the object to which this object is
+# a parent based on the relation type.
+#
+sub dm_Locate_Child ($$$) {
+	my($ss,$object_id,$relation_type) = @_;
+
+	my($relation_obj_id) = dmAPIGet("id,$ss,dm_relation where parent_id = '$object_id' and relation_name = '$relation_type'");
+	if (! $relation_obj_id) { return 0 ; }
+	my($child_object_id) = dmAPIGet("get,$ss,$relation_obj_id,child_id");
+	if (! $child_object_id) { return -1; } # This is most likely an error.
+	$child_object_id;
+}
+
+
+# EXPERIMENTAL!!
 # dm_KrbConnect - Obtains a documentum client session using a K4 session
-# 		  ticket.  Requires a compatible dm_check_password utility
-#                 on the server side.
+# 	ticket.  Requires a compatible dm_check_password utility
+#   on the server side.
+#
 sub dm_KrbConnect ($;$) {
 	my($docbase,$username) = @_;
 	my($service) = 'documentum';
@@ -213,153 +376,7 @@ sub dm_KrbConnect ($;$) {
 	}
 }
 
-# Find the active server for a given docbase.
-#
-#   $server = dm_LocateServer($docbase);
-#
-sub dm_LocateServer ($) {
-	my $docbase = shift;
-	my $locator = dmAPIGet("getservermap,apisession,$docbase");
-    my $hostname = dmAPIGet("get,apisession,$locator,i_host_name")
-        if ($locator);
 
-    return ($hostname) ? $hostname : undef;
-}
-
-# Returns the object id (if any) of the object to which this object is
-# a parent based on the relation type.
-sub dm_Locate_Child ($$$) {
-	my($ss,$object_id,$relation_type) = @_;
-
-	my($relation_obj_id) = dmAPIGet("id,$ss,dm_relation where parent_id = '$object_id' and relation_name = '$relation_type'");
-	if (! $relation_obj_id) { return 0 ; }
-	my($child_object_id) = dmAPIGet("get,$ss,$relation_obj_id,child_id");
-	if (! $child_object_id) { return -1; } # This is most likely an error.
-	$child_object_id;
-}
-
-# Create a Documentum object and populate attributes.
-#
-#     %ATTRS = (object_name =>  'test_doc2',
-#               title       =>  'My Test Doc 2',
-#               authors     =>  'Scott 1::Scott 2',
-#               keywords    =>  'Scott::Test::Doc::2',
-#               r_version_label => 'TEST');
-#
-#     $doc_id = dm_CreateObject ("dm_document",%ATTRS);
-#
-sub dm_CreateObject($;%) {
-
-   my $dm_type = shift;
-   my %attrs = @_;
-   my $api_stat = 1;
-
-   my $obj_id = dmAPIGet("create,c,$dm_type");
-
-   if ($obj_id) {
-      foreach my $attr (keys %attrs) {
-         if(dmAPIGet("repeating,c,$obj_id,$attr")) {
-            my @r_attr = split($Db::Documentum::Tools::Delimiter,$attrs{$attr});
-            foreach (@r_attr) {
-                $api_stat = 0 unless dmAPISet("append,c,$obj_id,$attr",$_);
-            }
-         }
-         else {
-            $api_stat = 0 unless dmAPISet("set,c,$obj_id,$attr",$attrs{$attr});
-         }
-      }
-   }
-   else { $api_stat = 0; }
-
-   return (! $obj_id || ! $api_stat) ? undef : $obj_id;
-}
-
-# Create a new Documentum object type.
-#
-#     %field_defs = (cat_id    => 'char(16)',
-#                    loc       => 'char(64)',
-#                    editions  => 'char(6) REPEATING');
-#     dm_CreateType ("my_document","dm_document",%field_defs);
-#
-sub dm_CreateType($$;%) {
-
-   my $name = shift;
-   my $super_type = shift;
-   my %field_defs = @_;
-   my $sql_body = "";
-
-   if (keys %field_defs) {
-      foreach my $field (keys %field_defs) {
-         $sql_body .= "$field $field_defs{$field},";
-      }
-      $sql_body =~ s/\,$//;
-      $sql_body = "($sql_body)";
-   }
-
-   my $sql = "CREATE TYPE $name $sql_body WITH SUPERTYPE $super_type";
-   my $api_stat =  dmAPIExec("execquery,c,,$sql");
-
-   if ($api_stat) {
-      my $col_id = dmAPIGet("getlastcoll,c,");
-      dmAPIExec("close,c,$col_id") if $col_id;
-   }
-
-   return $api_stat;
-}
-
-# Create a new folder in the Docbase.
-#
-#     dm_CreatePath ('/Temp/Test/Unit-1');
-#
-sub dm_CreatePath($) {
-    my $path = shift;
-
-    # Break path into heirarchical elements
-    my @dirs = split("/",$path);
-
-    my $dm_path = "";
-
-    # if it already exists, just return
-    my $dir_id = dmAPIGet("id,c,dm_folder where any r_folder_path = \'$path\'");
-    return $dir_id if $dir_id;
-
-    # Test each heirarchical path for existance
-    foreach my $dir (@dirs) {
-        if ($dir =~ /^\w/) {
-            $dm_path .= "/$dir";
-
-            # Does this partial path exist?
-            $dir_id = dmAPIGet("id,c,dm_folder where any r_folder_path = \'$dm_path\'");
-
-            # If not, create it
-            if (! $dir_id) {
-                my %dir_attrs = ();
-                $dir_attrs{'object_name'} = $dir;
-
-                # Create the cabinet if needed
-                if ($dm_path =~ /^\/[\w\d]+$/) {
-                    $dir_id = dm_CreateObject("dm_cabinet",%dir_attrs);
-                    return undef unless dmAPIExec("save,c,$dir_id");
-                # Create a folder
-                } else {
-                    $dir_id = dm_CreateObject("dm_folder",%dir_attrs);
-                    return undef unless $dir_id;
-
-                    # Link it to its parent
-                    my $folder_path = $dm_path;
-                    $folder_path =~ s/\/$dir$//;
-                    if ($folder_path =~ /\w+/) {
-                        return undef
-                            unless dmAPIExec("link,c,$dir_id,\'$folder_path\'");
-                        return undef
-                            unless dmAPIExec("save,c,$dir_id");
-                    }
-                }
-            }
-        }
-    }
-    return $dir_id;
-}
 1;
 __END__
 
