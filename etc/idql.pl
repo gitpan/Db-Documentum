@@ -2,13 +2,24 @@
 # idql.pl
 # (c) 2000 MS Roth
 
+# ver 1.0 - July 2000
+#           * Initially released with 'An Introduction to Db::Documentum'
+# ver 1.1 - October 2000
+#           * Updated slightly for and released with Db::documentum 1.4
+# ver 1.2 - November 2000
+#           * Minor updates to fix results formatting problem
+#           + TODO: use Term::ANSIColor?
+#           + TODO: return results as hash?
+#           + TODO: make results columns only as wide as largest result returned
+
 use Db::Documentum qw(:all);
 use Db::Documentum::Tools qw (:all);
 use Term::ReadKey;
+$VERSION = "1.2";
 
 logon();
 
-# main loop
+# ===== main loop =====
 $cmd_counter = 1;
 while (1) {
     print "$cmd_counter> ";
@@ -27,7 +38,8 @@ while (1) {
 
 sub logon {
     print "\n" x 10;
-    print "Db::Documentum Interactive Document Query Language Editor (IDQL)\n";
+    print "(c) 2000 MS Roth. Distributed as part of Db::Documentum\n";
+    print "Db::Documentum Interactive Document Query Language Editor $VERSION\n";
     print "----------------------------------------------------------------\n";
     print "Enter Docbase Name: ";
     chomp ($DOCBASE = <STDIN>);
@@ -69,7 +81,9 @@ sub do_DQL {
 
             for ($i=0; $i<$attr_count; $i++) {
                 push(@attr_names,dmAPIGet("get,$SESSION,$col_id,_names[$i]"));
-                push(@attr_lengths,dmAPIGet("get,$SESSION,$col_id,_lengths[$i]"));
+                my $attrlen = dmAPIGet("get,$SESSION,$col_id,_lengths[$i]");
+                if ($attrlen < 16) { $attrlen = 16; }
+                push(@attr_lengths,$attrlen);
             }
 
             # print attr names
@@ -81,9 +95,7 @@ sub do_DQL {
 
             # print underbars for attr names
             for ($i=0; $i<$attr_count; $i++) {
-                if ($attr_lengths[$i] == 0)
-                    { $attr_lengths[$i] = 16; }
-                print "-" x $attr_lengths[$i] . "  ";
+                print "-" x $attr_lengths[$i] . " ";
             }
             print "\n";
 

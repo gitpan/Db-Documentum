@@ -1,9 +1,7 @@
 CHANGES
 Documentum.pm
 Documentum.xs
-Documentum.html
 Documentum/Tools.pm
-Documentum/Tools.html
 MANIFEST
 Makefile.PL
 test.pl
@@ -13,4 +11,6 @@ etc/dm_check_password.pl
 etc/dm_check_password_smb.pl
 etc/idql.pl
 etc/tickler.pl
-etc/intro-db-dctm-1-1.pdf
+etc/intro-db-dctm-1-2.pdf
+etc/Documentum.html
+etc/Tools.html

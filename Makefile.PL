@@ -140,7 +140,7 @@ WriteMakefile(
 	# This makes 'make ppd' happy
 	($] ge '5.005')
 	? (
-	    'AUTHOR'   => 'Brian Spolarich (briansp@acm.org) and M. Scott Roth (michael.s.roth@saic.com)',
+	    'AUTHOR'   => 'M. Scott Roth (michael.s.roth@saic.com)',
 	    'ABSTRACT_FROM' => 'Documentum.pm',
 	  )
 	: (),    

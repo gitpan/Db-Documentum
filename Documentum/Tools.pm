@@ -9,7 +9,7 @@ require 5.004;
 
 @ISA = qw(Exporter);
 @EXPORT = qw();
-$VERSION = '1.5';
+$VERSION = '1.51';
 $error = "";
 
 @EXPORT_OK = qw(

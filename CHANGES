@@ -47,5 +47,10 @@ Revision history for Perl extension Db::Documentum.
 	  command line with:  perl -MDb::Documentum -e Db::Documentum::version
 	- Added tickler.pl in /etc.
 	- Added intro-db-dctm-1-1.pdf in /etc.
-	  
+1.51  October 2001
+    - Updated test.pl to include version
+    - Updated idql.pl script
+    - Updated PPM instllation
+    - Included intro-db-dctm-1-2.pdf
+    
     

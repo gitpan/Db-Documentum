@@ -13,7 +13,7 @@ use Db::Documentum qw(:all);
 use Db::Documentum::Tools qw(:all);
 $loaded = 1;
 print "ok 1 # Modules load.\n";
-
+Db::Documentum::version;
 ######################### End of black magic.
 
 $counter = 2;

@@ -13,7 +13,7 @@ require AutoLoader;
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw();
-$VERSION = '1.5';
+$VERSION = '1.51';
 
 @EXPORT_OK = qw(
 	dmAPIInit
@@ -69,7 +69,7 @@ END
 
 sub version {
 	print "\n\nDb::Documentum version: $VERSION\n";	
-	print "Documentum server version: " . dmAPIGet("get,apisession,apiconfig,r_dmcl_version") . "\n";
+	print "DMCL version: " . dmAPIGet("get,apisession,apiconfig,r_dmcl_version") . "\n\n";
 }
 	
 ## -----------------
