@@ -1,0 +1,52 @@
+Documentum Perl 5 Extension Version 0.9
+---------------------------------------
+
+This is the Documentum client library extention to Perl5.  I have used
+Perl 5.004_04 in making this extension, but wouldn't be surprised if it
+worked on older versions of Perl...there's nothing in the XS interface
+that's particular to 5.004.
+
+This version was built against version 3.15 of Documentum, but should
+work with older versions, as the API hasn't apparently changed much in 
+a long time.  The flags in the Makefile.PL are for Solaris, so you
+may have to tweak the Makefile.PL if you're using a different platform
+(my docs only tell me how to build stuff for Solaris).  Let me know what 
+settings you use for a given platform and I'll include them in the
+distribution notes.
+
+To build this extension, unpack the distribution, and edit Makefile.PL
+to point at your documentum client libraries.  I arranged mine in the
+typical Unix "/bin /lib /include" fashion.  You may need to tailor
+this depending on your particular installation.  Then do the typical
+Perl module building stuff:
+
+	perl Makefile.PL
+	make
+	make test
+	make install
+
+Note:  You will need to edit test.pl to provide your docbase name, userid,
+and password.  If you don't do this, the tests will fail.  The client
+libraries will locate your DocBroker from your dmcl.ini file, which should
+be pointed to via the DMCL_CONFIG environment variable.  So before
+building this module, I'd recommend setting DMCL_CONFIG to avoid any
+potential problems.  If you're concerned about docbase integrity, use
+a userid with limited privileges, and review my test.pl script.
+
+The test.pl script will connect to your docbase, generate a new
+document (from the dm_document class) and link it into the /Temp
+cabinet (its called "Perl Test".  You can destroy this document after the 
+tests have run, but this is an easy way to exercise all of the API functions.
+
+This interface works much better than the sick, hacked version of
+Perl 5.001 that Documentum provides with the server.  This module
+doesn't dump core when errors are encountered (like a non-existent
+object attribute). 
+
+If you encounter problems with the module that appear to be confined
+to the module (or can't tell), please let me know.  If you find this
+module useful, let me know as well. 
+
+Brian W. Spolarich
+ANS Communications
+<briansp@ans.net>
