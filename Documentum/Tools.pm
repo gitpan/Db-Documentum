@@ -12,7 +12,7 @@ require 5.004;
 
 @ISA = qw(Exporter);
 @EXPORT = qw();
-$VERSION = '1.52';
+$VERSION = '1.53';
 $error = "";
 
 @EXPORT_OK = qw(
@@ -313,7 +313,7 @@ sub dm_CreateType($$;%) {
 #
 sub dm_CreatePath($) {
     my $path = shift;
-    
+
     # Break path into heirarchical elements
     my @dirs = split("/",$path);
 
@@ -330,18 +330,18 @@ sub dm_CreatePath($) {
 
             # Does this partial path exist?
             $dir_id = dmAPIGet("id,c,dm_folder where any r_folder_path = \'$dm_path\'");
-            
+
             # If not, create it
             if (! $dir_id) {
                 my %dir_attrs = ();
                 $dir_attrs{'object_name'} = $dir;
 
-                # Create the cabinet if needed                
+                # Create the cabinet if needed
                 if ($dm_path =~ /^\/[\w\d]+$/) {
                     $dir_id = dm_CreateObject("dm_cabinet",%dir_attrs);
-                    return undef unless dmAPIExec("save,c,$dir_id");  
-                # Create a folder                      
-                } else {    
+                    return undef unless dmAPIExec("save,c,$dir_id");
+                # Create a folder
+                } else {
                     $dir_id = dm_CreateObject("dm_folder",%dir_attrs);
                     return undef unless $dir_id;
 
@@ -349,11 +349,11 @@ sub dm_CreatePath($) {
                     my $folder_path = $dm_path;
                     $folder_path =~ s/\/$dir$//;
                     if ($folder_path =~ /\w+/) {
-                        return undef 
+                        return undef
                             unless dmAPIExec("link,c,$dir_id,\'$folder_path\'");
-                        return undef 
+                        return undef
                             unless dmAPIExec("save,c,$dir_id");
-                    }        
+                    }
                 }
             }
         }
@@ -380,13 +380,13 @@ Db::Documentum::Tools - Support functions for Db::Documentum.
 	$error_msg = dm_LastError($session_id);
 	$error_msg = dm_LastError($session_id,1);
 	$error_msg = dm_LastError($session_id,$level,$number);
-	
+
     	$object_id = dm_CreateObject("dm_document",%ATTRS);
     	$object_id = dm_CreateObject("dm_document");
 
     	$api_stat = dm_CreateType("my_document","dm_document",%field_defs);
     	$api_stat = dm_CreateType("my_document","dm_document");
-    
+
     	$obj_id = dm_CreatePath('/Temp/Test/Unit-1');
 
 	$session_id = dm_KrbConnect($docbase);
@@ -408,7 +408,7 @@ Documentum, Inc. and its shareholders.
 =head1 AUTHOR
 
 M. Scott Roth, Science Applications International Corporation,
-C<Scott_Roth@saic-nmsd.com>
+C<Michael.S.Roth@saic.com>
 
 =head1 SEE ALSO
 

@@ -1,67 +1,116 @@
 use ExtUtils::MakeMaker;
 
-
 print "\n\n\nWelcome to the Db::Documentum installation process.\n";
 print "---------------------------------------------------\n\n";
-print "Please select:\n\n";
-print "\t1) to build the module for EDMS98, or\n";
-print "\t2) to build the module for Documentum 4i\n";
-print "==>";
-chomp($ans = <STDIN>);
-if ($ans =~ /1/) {
-    $dmcl = 'dmcl32.lib';
-} else {
-    $dmcl = 'dmcl40.lib';
-}
 
 unless ($OS = $^O) {
 	   require Config;
 	   $OS = $Config::Config{'osname'};
 }
-print "\n\nConfiguring Db::Documentum for $OS...\n\n";
+print "Configuring Db::Documentum for $OS...\n\n";
 
 ##################################################################
 # *** Windows NT users should look here ***
 ##################################################################
 if ($OS =~ /Win/i) {
 
-	# Path to Documentum installation directory.
-	$DM_HOME = 'c:\\program files\\documentum';
+    print "Select a flavor:\n";
+    print "\t1) to build the module for EDMS98, or\n";
+    print "\t2) to build the module for Documentum 4i\n";
+    print "==>";
+    chomp($ans = <STDIN>);
+    if ($ans =~ /1/) {
+        $dmcl = 'dmcl32.lib';
+    } else {
+        $dmcl = 'dmcl40.lib';
+    }
 
-	# Path to Documentum libraries (dmcl32.lib or dmcl40.lib).
-    #
-	# *** EDMS 98 ***
-	# The dmcl32.lib is probably already in this directory.
-	#
-	# *** 4i ***
-	# The dmcl40.lib can be found on your 4i server in:
-	#       <DOCUMENTUM>/share/clients/win/32.
-	# I suggest putting it here for simplicity.	
+	# Path to Documentum installation directory.
+	$DM_HOME = "c:\\program files\\documentum";
+
+    print "\n\n---------------------------------------------------\n";
+    print "Documentum install directory:\n\n";
+    print "Enter the path to the Documentum Installation directory:\n";
+    print "\t[$DM_HOME] ==>";
+    chomp($ans = <STDIN>);
+    if ($ans =~ /\w+/) {
+        $DM_HOME = $ans;
+    } else {
+        ## noop;
+    }
+
+
+	# Path to Documentum library (dmcl32.lib or dmcl40.lib).
 	$DM_LIB = "$DM_HOME\\shared";
 
+    print "\n\n\n---------------------------------------------------\n";
+    print "$dmcl library file:\n\n";
+    if ($dmcl =~ /32/) {
+        print "The $dmcl library file is probably already located in the\n";
+        print "$DM_LIB directory.\n";
+    } else {
+        print "The $dmcl library file is located in the share\\clients\\win\\32\n";
+        print "directory on e-Content Server. I recommend copying it to the \n";
+        print "$DM_LIB directory for simplicity.\n";
+    }
+              
+    print "\nEnter the path to the $dmcl library file:\n\t[$DM_LIB] ==>";
+    chomp($ans = <STDIN>);
+    if ($ans =~ /\w+/) {
+        $DM_LIB = $ans;
+    } else {
+        ## noop;
+    }
+
+    # check for dmcl library file
+    if (! -e "$DM_LIB\\$dmcl") {
+        warn "\n*** WARNING *** Could not find $DM_LIB\\$dmcl.\nThe module will not make without " .
+             "$dmcl.\nPlease copy $dmcl to the $DM_LIB directory.\n";
+    }
+
 	# Path to dmapp.h.
-	# dmapp.h is not in DM_HOME/shared by default; I suggest putting it here
-	# for simplicity.
-	#
-	# *** EDMS 98 ***
-	# If you are using EDMS 98, you can find dmapp.h on the DocPage Builder CD in:
-	#   <cd>:\docpage builder\samples\server\unix\c.
-	#
-	# *** 4i ***
-	# If you are using 4i, you can find dmapp.h on your server's hard drive in:
-	#   <DOCUMENTUM>/share/sdk/include.
-	#
 	$DM_INCLUDE = "$DM_HOME\\shared";
 
+    print "\n\n\n---------------------------------------------------\n";
+    print "dmapp.h header file:\n\n";
+
+    if ($dmcl =~ /32/) {
+        print "The dmapp.h header file is located in the\n";
+        print "docpage builder\\samples\\server\\unix\\c directory of the \n";
+        print "DocPage Builder CD.\n";
+    } else {
+        print "The dmapp.h header file is located in the \\share\\sdk\\include\n";
+        print "directory on the e-Content Server.\n";
+    }
+
+    print "I recommend copying it to the $DM_INCLUDE \n";
+    print "directory for simplicity.\n";
+              
+    print "\nEnter the path to the dmapp.h header file:\n\t[$DM_INCLUDE] ==>";
+    chomp($ans = <STDIN>);
+    if ($ans =~ /\w+/) {
+        $DM_INCLUDE = $ans;
+    } else {
+        ## noop;
+    }
+
+    # check for api header file
+    if (! -e "$DM_INCLUDE\\dmapp.h") {
+        warn "\n*** WARNING *** Could not find $DM_INCLUDE\\dmapp.h.\nThe module will not make without " .
+             "dmapp.h.\nPlease copy dmapp.h to the $DM_INCLUDE directory.\n";
+    }
+    
     # get the CPP include and lib paths from the environment
     my $inc = $ENV{INCLUDE};
-    $inc = "-I" . join(" -I",split(";",$inc));
+    warn "\n*** WARNING *** No INCLUDE environment variable found.  You may need to run VCVARS32.BAT" .
+         " before running nmake.\n" unless $inc;    
+    $inc = "-I\"" . join("\" -I\"",split(";",$inc)) . "\"";
+    
     my $lib = $ENV{LIB};
-    $lib = "-L" . join(" -L",split(";",$lib));
-
-    warn "No INCLUDE or LIB environment variable found.  You may need to run VCVARS32.BAT" .
-         " before running nmake." if (!$inc || !$lib);
-
+    warn "\n*** WARNING *** No LIB environment variable found.  You may need to run VCVARS32.BAT" .
+         " before running nmake.\n" unless $lib;
+    $lib = "-L\"" . join("\" -L\"",split(";",$lib)) . "\"";
+                
     # build all nmake parameters
     $CPP_INCS = $inc;
     $DM_INCLUDE = "-I\"$DM_INCLUDE\"";
@@ -100,23 +149,24 @@ elsif ( ($OS =~ /solaris/i) or ($OS =~ /aix/i) or ($OS =~ /hpux/i) ) {
 }
 
 ##################################################################
-# Otherwise you're out of luck.  Documentum doesn't support you, so how
-# can we?
+# Otherwise you're out of luck.  Documentum doesn't support you, so
+# how can we?
 ##################################################################
 else {
 	die "$OS is not a supported platform for Db::Documentum (or for Documentum in general).\n";
 }
 
 # print config summary
+print "\n\n\n---------------------------------------------------\n";
 print "Config summary:\n\n";
-print "DM_INCLUDE=\n\t$DM_INCLUDE\n\n";
-print "CPP_INCS=\n\t$CPP_INCS\n\n";
-print "DM_CLIENT_LIBS=\n\t$DM_CLIENT_LIBS\n\n";
-print "CPP_LIBS=\n\t$CPP_LIBS\n\n";
-print "LD_LIBS=\n\t$LD_LIBS\n\n";
-print "DM_RPC_LIBS=\n\t$DM_RPC_LIBS\n\n";
-print "OS_LIBS=\n\t$OS_LIBS\n\n";
-    
+print "DM_INCLUDE = $DM_INCLUDE\n";
+print "CPP_INCS = $CPP_INCS\n";
+print "DM_CLIENT_LIBS = $DM_CLIENT_LIBS\n";
+print "CPP_LIBS = $CPP_LIBS\n";
+print "LD_LIBS = $LD_LIBS\n";
+print "DM_RPC_LIBS = $DM_RPC_LIBS\n";
+print "OS_LIBS = $OS_LIBS\n\n";
+
 # write makefile
 
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
@@ -136,14 +186,14 @@ WriteMakefile(
 
 	'DEFINE'	=> '-DSQLNETV2 -DSYSV -D$OS -DOS_UNIX',
 	'INC'	=> "$DM_INCLUDE $CPP_INCS",
-	
+
 	# This makes 'make ppd' happy
 	($] ge '5.005')
 	? (
 	    'AUTHOR'   => 'M. Scott Roth (michael.s.roth@saic.com)',
 	    'ABSTRACT_FROM' => 'Documentum.pm',
 	  )
-	: (),    
+	: (),
 
 	# This is just here to make 'make dist' easier to run.
 	'dist' => { COMPRESS=>"gzip", SUFFIX=>"gz" }

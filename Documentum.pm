@@ -16,7 +16,7 @@ require AutoLoader;
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw();
-$VERSION = '1.52';
+$VERSION = '1.53';
 
 @EXPORT_OK = qw(
 	dmAPIInit
@@ -71,10 +71,10 @@ END
 ## invoke with: perl -MDb::Documentum -e Db::Documentum::version
 
 sub version {
-	print "\n\nDb::Documentum version: $VERSION\n";	
+	print "\n\nDb::Documentum version: $VERSION\n";
 	print "DMCL version: " . dmAPIGet("get,apisession,apiconfig,r_dmcl_version") . "\n\n";
 }
-	
+
 ## -----------------
 
 1;
@@ -112,15 +112,15 @@ I<http://www.documentum.com/>
 
 This module provides an interface to the three listed API
 functions: B<dmAPIGet>, B<dmAPIExec>, and B<dmAPISet>. For most purposes,
-these are the only functions you need to use, as the bulk of the 
-API is implemented as server methods accessed by one of the API 
-commands. B<dmAPIExec> returns a scalar (1 or 0) which can be evaluated 
-to determine success (1 for success, 0 for failure). B<dmAPISet> also 
-returns a scalar, but takes two arguments, the method argument and the 
-value to use. B<dmAPIGet> takes a single argument and returns a string 
-containing the results. This string, which may contain an object or 
+these are the only functions you need to use, as the bulk of the
+API is implemented as server methods accessed by one of the API
+commands. B<dmAPIExec> returns a scalar (1 or 0) which can be evaluated
+to determine success (1 for success, 0 for failure). B<dmAPISet> also
+returns a scalar, but takes two arguments, the method argument and the
+value to use. B<dmAPIGet> takes a single argument and returns a string
+containing the results. This string, which may contain an object or
 query collection identifier can be used later with other method calls.
-    
+
 This module, by default, does not import all of its symbols into the calling
 package's namespace.  Therefore, the Documentum API commands must be
 called with the fully-qualified package path:
@@ -137,7 +137,7 @@ on how to interact with the Documentum server.
 
 Check the version of this module with:
 	>perl -MDb::Documentum -e Db::Documentum::version
-	
+
 =head1 WARRANTY
 
 There is none, implied, expressed, or otherwise.  We are providing this gratis,
@@ -154,7 +154,7 @@ Documentum, Inc. and its shareholders.
 =head1 AUTHORS
 
 M. Scott Roth, Science Applications International Corporation,
-C<Scott_Roth@saic-nmsd.com>
+C<Michael.S.Roth@saic.com>
 
 =head1 SEE ALSO
 

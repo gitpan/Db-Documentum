@@ -2,7 +2,7 @@ README - Documentum Perl 5 Extension
 ------------------------------------
 
 This is the Documentum client library extention to Perl.  I have used
-Perl 5.005_03 build this extension, but I know it works on older versions;
+Perl 5.6.1 build this extension, but I know it works on older versions;
 at least back to 5.004. 
 
 * IMPORTANT NOTE *
@@ -13,10 +13,11 @@ client code which may check the return status of these calls will
 complain or fail, depending on what you're doing with the results.
 
 This version has been built and tested with EDMS versions 3.1.5, 3.1.6, 98,
-and 4i versions 4.0.2,and 4.1 but should work with older versions, as the 
+and 4i versions 4.0.2, 4.1, and 4.2 but should work with other versions, as the 
 API hasn't changed much in a long time.  The Makefile.PL will automatically
 write make files for NT and Solaris.  If you're using a different platform
 let us know what settings you use and we'll include them in the future.  
+
 Note: regardless of your OS, the paths in the Makefile.PL file may need to 
 be tweaked depending upon your particular setup.
 
@@ -40,11 +41,6 @@ own client code.  :-)
 
 Check the version of this module with:
 	>perl -MDb::Documentum -e Db::Documentum::version
-
-This interface works much better than the sick, hacked version of
-Perl 5.001 that Documentum provides with the server.  This module
-doesn't dump core when errors are encountered (like a non-existent
-object attribute).
 
 
 Documentum::Tools
@@ -225,18 +221,19 @@ etc/idql.pl
 
 etc/tickler.pl
 ------------------------
-
+    Sample application that checks for items in your inbox.
 
 
 etc/intro-db-dctm-11.pdf
 ------------------------
-
+    Tutorial explaining all the features and demonstrating several uses of
+    Db::Documentum.
 	
 
 If you encounter problems with the module that appear to be confined
-to the module (or can't tell), please let us know.  If you find this
-module useful, let us know as well.
+to the module (or can't tell), please let me know.  If you find this
+module useful, let me know as well.
 
 Scott Roth
 Science Applications International Corp.
-<Scott_Roth@saic-nmsd.com>
+<Michael.S.Roth@saic.com>

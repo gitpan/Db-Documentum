@@ -53,7 +53,12 @@ Revision history for Perl extension Db::Documentum.
     - Updated PPM instllation
     - Included intro-db-dctm-1-2.pdf
 1.52  January 2002
-    - Fixed "bug" in dm_Connect function that produced warning: 'Use of 
+    - Fixed "bug" in dm_Connect function that produced warning: 'Use of
       uninitialized value in concatenation (.) at...' on Solaris.  Thanks
       Mark Faine for identifying it.
-    
+1.53  February  2002
+    - Improved Makefile.PL to better handle windows directories containing
+      spaces (thanks Erik Mayo), verify the existence of key libraies, and
+      improved error checking.
+
+          

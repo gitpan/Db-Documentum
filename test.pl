@@ -13,25 +13,39 @@ use Db::Documentum qw(:all);
 use Db::Documentum::Tools qw(:all);
 $loaded = 1;
 print "ok 1 # Modules load.\n";
-Db::Documentum::version;
 ######################### End of black magic.
+
+# print version
+Db::Documentum::version;
 
 $counter = 2;
 $success = 1;
 
 if (! $ENV{'DMCL_CONFIG'}) {
-	print "Enter the path to your DMCL_CONFIG file: "; chomp ($dmcl_config = <STDIN>);
-	if (-r $dmcl_config) { $ENV{'DMCL_CONFIG'} = $dmcl_config; }
-	else { die "Can't find DMCL_CONFIG '$dmcl_config': $!.  Exiting."; }
+	print "Enter the path to your DMCL_CONFIG file: "; 
+	chomp ($dmcl_config = <STDIN>);
+	
+	if (-r $dmcl_config) { 
+	    $ENV{'DMCL_CONFIG'} = $dmcl_config;
+	} else { 
+	    die "Can't find DMCL_CONFIG '$dmcl_config': $!.  Exiting.";
+	}
 }
 
 print "Using '$ENV{'DMCL_CONFIG'}' as client config.\n";
-print "Docbase name: "; chomp ($docbase = <STDIN>);
-print "Username: "; chomp ($username = <STDIN>);
-print "Password: "; chomp ($password = <STDIN>);
+print "Docbase name: "; 
+chomp ($docbase = <STDIN>);
+
+print "Username: ";
+chomp ($username = <STDIN>);
+
+print "Password (*WARNING* password will be displayed in clear text): ";
+chomp ($password = <STDIN>);
+
 
 # Here's the bulk of our test suite.
 print "\n\nTesting Db::Documentum module...\n";
+
 # Test DM client connect.
 do_it("connect,$docbase,$username,$password",NULL,"dmAPIGet",
 		"DM client connection");
