@@ -55,7 +55,7 @@ $FALSE = 0;
 #   Example: $session = dm_Connect("docbase","user","password");
 #
 # ---------------------------------------------------------------------------
-sub dm_Connect {
+sub dm_Connect($$$;$$) {
    my $docbase = shift;
    my $username = shift;
    my $password = shift;
@@ -84,17 +84,13 @@ sub dm_Connect {
 #   Example: print dm_LastError($session,3);
 #
 # ---------------------------------------------------------------------------
-sub dm_LastError {
-	my $session = shift;
-	my $level = shift;
-	my $number = shift;
-	my $return_data;
-
+sub dm_LastError (;$$$) {
+	my($session,$level,$number) = @_;
+	my($return_data);
 	$session = 'apisession' unless ($session);
 	$level = '3' unless ($level);	# Set a default level to report.
 	$number = 'all' unless ($number);
-
-	my $message_text = dmAPIGet("getmessage,$session,$level");
+	my($message_text) = dmAPIGet("getmessage,$session,$level");
 	if ($number eq "all") {
 		$return_data = $message_text;
 	} else {
@@ -103,7 +99,7 @@ sub dm_LastError {
 			$return_data .= sprintf("%s\n",$message_list[$i]);
 		}
 	}
-	return $return_data;
+	$return_data;
 }
 
 # ---------------------------------------------------------------------------
@@ -156,7 +152,7 @@ sub dm_CreateObject($;%) {
 #     $rv = dm_CreateType ("my_document","dm_document",%field_defs);
 #
 # ---------------------------------------------------------------------------
-sub dm_CreateType {
+sub dm_CreateType($$;%) {
 
    my $name = shift;
    my $super_type = shift;
@@ -188,7 +184,7 @@ sub dm_CreateType {
 #  Example:   $path = dm_CreatePath ('/Temp/Test/Unit-1');
 #
 # ---------------------------------------------------------------------------
-sub dm_CreatePath {
+sub dm_CreatePath($) {
     my $path = shift;
 
     # Break path into heirarchical elements
@@ -244,7 +240,7 @@ sub dm_CreatePath {
 #   Example:  $server = dm_LocateServer($docbase);
 #
 # ---------------------------------------------------------------------------
-sub dm_LocateServer {
+sub dm_LocateServer ($) {
 	my $docbase = shift;
 	my $locator = dmAPIGet("getservermap,apisession,$docbase");
     my $hostname = dmAPIGet("get,apisession,$locator,i_host_name")
@@ -260,7 +256,7 @@ sub dm_LocateServer {
 #  Example:  $child = dm_Locate_Child($session,$object_id,$relation);
 #
 # ---------------------------------------------------------------------------
-sub dm_Locate_Child {
+sub dm_Locate_Child ($$$) {
 	my($ss,$object_id,$relation_type) = @_;
 
 	my($relation_obj_id) = dmAPIGet("id,$ss,dm_relation where parent_id = '$object_id' and relation_name = '$relation_type'");
@@ -289,7 +285,7 @@ sub dm_Locate_Child {
 #         does not exist, it is created by calling dm_CreatePath.
 #
 # ---------------------------------------------------------------------------
-sub dm_Copy {
+sub dm_Copy($;$) {
     my $orig_obj_id = shift;
     my $to_folder = shift;
 
@@ -318,7 +314,7 @@ sub dm_Copy {
 #         full path (e.g., "/Temp/2004/Q2/Jun/1").
 #
 # ---------------------------------------------------------------------------
-sub dm_Move {
+sub dm_Move($$;$) {
     my $obj = shift;
     my $to_folder = shift;
     my $from_folder = shift;
@@ -392,12 +388,9 @@ sub dm_Move {
 #  Example:  $rv = dm_Delete($obj_id, $all);
 #
 # ---------------------------------------------------------------------------
-sub dm_Delete {
+sub dm_Delete($;$) {
     my $obj_id = shift;
     my $all = shift;
-    my $query;
-    my $col;
-
     $all = $FALSE unless ($all);
 
     # if not a cabinet or folder, just destroy object
@@ -407,8 +400,8 @@ sub dm_Delete {
             # destroy all versions using DQL--it's easier
             my $obj_chron_id = dmAPIGet("get,c,$obj_id,i_chronicle_id");
             if ($obj_chron_id) {
-                $query = "delete dm_sysobject (all) objects where i_chronicle_id = '$obj_chron_id'";
-                $col = dmAPIGet("query,c,$query");
+                my $query = "delete dm_sysobject (all) objects where i_chronicle_id = '$obj_chron_id'";
+                my $col = dmAPIGet("query,c,$query");
 
                 # get delete results
                 while (dmAPIExec("next,c,$col")) {
@@ -421,8 +414,8 @@ sub dm_Delete {
         }
     } else {
         # if obj_id is folder or cabinet do deep delete
-        $query = "select r_object_id from dm_sysobject (all) where folder(id('$obj_id'))";
-        $col = dmAPIGet("query,c,$query");
+        my $query = "select r_object_id from dm_sysobject (all) where folder(id('$obj_id'))";
+        my $col = dmAPIGet("query,c,$query");
         my @del_tree = ();
 
         # build array with all objects returned in query

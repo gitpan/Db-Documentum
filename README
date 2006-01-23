@@ -4,7 +4,7 @@ README - Documentum Perl 5 Extension
 This is the Documentum API interface to Perl.
 
 These modules have been built and tested with EDMS versions 3.1.5, 3.1.6, 98,
-4.0.2, 4.1, 4.2, 5.2, 5.2.5 SP2.  They should also work with other versions,
+4.0.2, 4.1, 4.2, 5.2, 5.2.5 SP2, 5.3 SP1.  They should also work with other versions,
 as the API hasn't changed much in a long time.
 
 * IMPORTANT NOTE #1*

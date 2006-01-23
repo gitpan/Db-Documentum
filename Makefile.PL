@@ -49,7 +49,7 @@ if ($OS =~ /Win/i) {
         print "$DM_LIB directory.\n";
     } else {
         print "The $dmcl library file is located in the share\\clients\\win\\32\n";
-        print "directory on e-Content Server. I recommend copying it to the \n";
+        print "directory on Content Server. I recommend copying it to the \n";
         print "$DM_LIB directory for simplicity.\n";
     }
 
@@ -79,7 +79,7 @@ if ($OS =~ /Win/i) {
         print "DocPage Builder CD.  ";
     } else {
         print "The dmapp.h header file is located in the \\share\\sdk\\include\n";
-        print "directory on the e-Content Server.  ";
+        print "directory on the Content Server.  ";
     }
 
     print "I recommend copying it to the \n$DM_INCLUDE ";
@@ -140,10 +140,10 @@ elsif ( ($OS =~ /solaris/i) or ($OS =~ /aix/i) ) {
 	# Path to directory where dmapp.h lives.
 	$DM_INCLUDE = "-I$DM_HOME/include";
 
-	$DM_CLIENT_LIBS = "-L$DM_LIB -ldmapi -ldmupper -ldmlower -ldmcommon -ldmupper -lcompat -l$dmcl";
+	$DM_CLIENT_LIBS = "-L$DM_LIB -ldmapi -ldmupper -ldmlower -ldmcommon -ldmupper -lcompat";
 	$DM_RPC_LIBS = "-L$DM_LIB -lnwrpc -lnwstcp";
 	$OS_LIBS = "-lsocket -lnsl -lintl";
-	$CPP_LIBS = "";
+	$CPP_LIBS = "-lC";
 	$LD_LIBS = "-ldl";
 	$CPP_INC = "";
 	$CCFLAGS = "";
@@ -197,6 +197,12 @@ print "DM_RPC_LIBS = $DM_RPC_LIBS\n";
 print "OS_LIBS = $OS_LIBS\n";
 print "CCFLAGS = $CCFLAGS\n\n";
 
+if ($OS =~ /Win/i) {
+    warn "\n*** WARNING *** The Microsoft C++ compiler does not properly interpret quoted\n" .
+         " paths, paths with spaces, or directory names longer than 8 characters.  Please\n" .
+         " double-check your environment variables to ensure all paths comply.\n\n";
+}
+
 # write makefile
 
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
@@ -221,7 +227,7 @@ WriteMakefile(
 	# This makes 'make ppd' happy
 	($] ge '5.005')
 	? (
-	    'AUTHOR'   => 'M. Scott Roth (michael.s.roth@saic.com)',
+	    'AUTHOR'   => 'M. Scott Roth (scott@dm-book.com)',
 	    'ABSTRACT_FROM' => 'Documentum.pm',
 	  )
 	: (),

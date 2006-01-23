@@ -69,13 +69,14 @@ Revision history for Perl extension Db::Documentum.
     - Tested with DMCL 5.2
 1.6   September 2004
     - Added dm_Copy subroutine to Tools module.  dm_Copy will copy a single
-      object to a new location.
+      object, a folder of objects, or deep copy a folder structure.
     - Added dm_Move subroutine to Tools module.  dm_Move will move a single
       object, a folder of objects, or deep move a folder structure.
     - Added dm_Delete subroutine to Tools module. dm_Delete will delete a single
       object, a folder of objects, or deep delete a folder structure.
     - Updated test.pl script to include dm_Copy, dm_Move, dm_Delete.
-    - Updated /etc scripts
     - Tested with DMCL 5.2.5 SP2.
+1.61 - January 2006
+    - Recompiled for Documentum 5.3
 
 

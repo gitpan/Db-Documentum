@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 # tickler.pl
-# (C) 2000-2004 MS Roth
+# © 2000 MS Roth
 
 use Db::Documentum qw (:all);
 use Db::Documentum::Tools qw (dm_Connect dm_LastError);
@@ -9,20 +9,16 @@ print "\nDb::Documentum Inbox Tickler\n";
 print "----------------------------\n";
 
 # define $DOCBASE, $USER, $PASSWD here
-$DOCBASE = "";
-$USER = "";
-$PASSWD = "";
 
 # logon or die
 $SESSION_ID = dm_Connect($DOCBASE,$USER,$PASSWD);
 die "No session ID obtained.\nDocumentum Error was: " .
-    dm_LastError("","3","all") unless $SESSION_ID;
+dm_LastError("","3","all") unless $SESSION_ID;
 
-# define DQL for counting
-$DQL = "SELECT COUNT(*) AS cnt FROM dmi_queue_item WHERE name = user" .
-    " and delete_flag = 0";
+# define SQL for counting
+$DQL = "SELECT COUNT(*) AS cnt FROM dmi_queue_item WHERE name = user";
 
-# do query
+# do duery
 $col_id = dmAPIGet("query,$SESSION_ID,$DQL");
 
 # if query successful
@@ -32,11 +28,8 @@ if ($col_id) {
     $count = dmAPIGet("get,$SESSION_ID,$col_id,cnt");
    }
    dmAPIExec("close,$SESSION_ID,$col_id");
-
-   # print result
    print "You have $count items in your inbox.\n";
 }
-
 # if no collection, error
 else {
    print "\nNo collection ID obtained.\n";
@@ -44,10 +37,5 @@ else {
 }
 
 dmAPIExec("disconnect,$SESSION_ID");
-
-
-## -----------------
-##      <SDG><
-## -----------------
 
 # __EOF__
