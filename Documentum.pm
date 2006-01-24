@@ -1,7 +1,7 @@
 package Db::Documentum;
 
 # Documentum.pm
-# (c) 2004 M. Scott Roth
+# (c) 2006 M. Scott Roth
 
 use strict;
 use Carp;
@@ -17,7 +17,7 @@ require AutoLoader;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw();
 
-$VERSION = '1.61';
+$VERSION = '1.62';
 
 @EXPORT_OK = qw(
 	dmAPIInit
@@ -156,8 +156,7 @@ Documentum, Inc. and its shareholders.
 
 =head1 AUTHORS
 
-M. Scott Roth, Science Applications International Corporation,
-C<Michael.S.Roth@saic.com>
+M. Scott Roth, C<scott@dm-book.com>
 
 =head1 SEE ALSO
 

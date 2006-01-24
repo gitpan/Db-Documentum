@@ -14,3 +14,4 @@ etc/dm_check_password.pl
 etc/dm_check_password_smb.pl
 etc/idql.pl
 etc/tickler.pl
+META.yml                                 Module meta-data (added by MakeMaker)

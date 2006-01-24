@@ -1,7 +1,7 @@
 package Db::Documentum::Tools;
 
 # Tools.pm
-# (c) 2004 M. Scott Roth
+# (c) 2006 M. Scott Roth
 
 use Carp;
 use Exporter;
@@ -13,7 +13,7 @@ use Db::Documentum qw(:all);
 @ISA = qw(Exporter);
 @EXPORT = qw();
 
-$VERSION = '1.6';
+$VERSION = '1.62';
 $error = "";
 
 @EXPORT_OK = qw(
@@ -427,7 +427,7 @@ sub dm_Delete($;$) {
 
         # process array and recursively call dm_Delete to delete object
         foreach my $id (@del_tree) {
-            return $FALSE unless dm_Delete($id);
+            return $FALSE unless dm_Delete($id,$all);
         }
 
         # once the root folder is empty, delete it
@@ -636,8 +636,7 @@ Documentum, Inc. and its shareholders.
 
 =head1 AUTHOR
 
-M. Scott Roth, Science Applications International Corporation,
-C<Michael.S.Roth@saic.com>
+M. Scott Roth, C<scott@dm-book.com>
 
 =head1 SEE ALSO
 
