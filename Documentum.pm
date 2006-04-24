@@ -17,7 +17,7 @@ require AutoLoader;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw();
 
-$VERSION = '1.62';
+$VERSION = '1.63';
 
 @EXPORT_OK = qw(
 	dmAPIInit

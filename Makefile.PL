@@ -49,8 +49,10 @@ if ($OS =~ /Win/i) {
         print "$DM_LIB directory.\n";
     } else {
         print "The $dmcl library file is located in the share\\clients\\win\\32\n";
-        print "directory on Content Server. I recommend copying it to the \n";
-        print "$DM_LIB directory for simplicity.\n";
+        print "directory on Content Server, it can also be found in the Desktop\n";
+        print "Component Source package on the Documentum download site.\n";
+        print "I recommend copying it to the $DM_LIB\n";
+        print "directory for simplicity.\n";
     }
 
     print "\nEnter the path to the $dmcl library file:\n\t[$DM_LIB] ==>";
