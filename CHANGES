@@ -77,9 +77,16 @@ Revision history for Perl extension Db::Documentum.
     - Updated test.pl script to include dm_Copy, dm_Move, dm_Delete.
     - Tested with DMCL 5.2.5 SP2.
 1.61 - January 2006
-    - Recompiled for Documentum 5.3 and Perl 5.8.7
+     - Recompiled for Documentum 5.3 and Perl 5.8.7
 1.62 - January 2006
-    - Update all occurrences of email to point dm-book.com
+     - Update all occurrences of email to point dm-book.com
 1.63 - April 2006
-    - Corrected packaging error in 1.62 that prevented it from working!
-
+     - Corrected packaging error in 1.62 that prevented it from working!
+1.64 - January 2007
+     - Updated Makefile.pl to include Redhat Linux E3 (thanks to Craig Soucie
+       for providing this info)
+     - Updated Makefile.pl to include changes for UNIX to link against
+       dynamic libraries (thanks to Craig Soucie and John Kominetz for providing
+       this info)
+     - Removed dmcl32.lib and pre-5.0 release builds from Makefile.pl
+     - Recompiled for Documentum 5.3 SP3

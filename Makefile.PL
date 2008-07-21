@@ -1,98 +1,68 @@
 use ExtUtils::MakeMaker;
 
 print "\n\n\nWelcome to the Db::Documentum installation process.\n";
-print "---------------------------------------------------\n\n";
+print "***************************************************\n";
 
 unless ($OS = $^O) {
 	   require Config;
 	   $OS = $Config::Config{'osname'};
 }
-print "Configuring Db::Documentum for $OS...\n\n";
+print "\tConfiguring Db::Documentum for $OS...\n";
 
 ##################################################################
 # *** Windows NT/2000/XP users should look here ***
 ##################################################################
 if ($OS =~ /Win/i) {
-
-    print "Select a flavor:\n";
-    print "\t1) build the module for EDMS98\n";
-    print "\t2) build the module for Documentum 4i or 5\n";
-    print "==>";
-    chomp($ans = <STDIN>);
-    if ($ans =~ /1/) {
-        $dmcl = 'dmcl32.lib';
-    } else {
-        $dmcl = 'dmcl40.lib';
-    }
+    $DMCL = 'dmcl40.lib';
 
 	# Path to Documentum installation directory.
 	$DM_HOME = "c:\\program files\\documentum";
 
-    print "\n\n---------------------------------------------------\n";
-    print "Documentum install directory:\n\n";
-    print "Enter the path to the Documentum Installation directory:\n";
+    print "\n\nDocumentum install directory:\n";
+    print "-----------------------------\n";
+    print "Enter the path to the Documentum installation directory:\n";
     print "\t[$DM_HOME] ==>";
     chomp($ans = <STDIN>);
     if ($ans =~ /\w+/) {
         $DM_HOME = $ans;
-    } else {
-        ## noop;
     }
 
-	# Path to Documentum library (dmcl32.lib or dmcl40.lib).
+	# Path to Documentum library (dmcl40.lib).
 	$DM_LIB = "$DM_HOME\\shared";
 
-    print "\n\n\n---------------------------------------------------\n";
-    print "$dmcl library file:\n\n";
-    if ($dmcl =~ /32/) {
-        print "The $dmcl library file is probably already located in the\n";
-        print "$DM_LIB directory.\n";
-    } else {
-        print "The $dmcl library file is located in the share\\clients\\win\\32\n";
-        print "directory on Content Server, it can also be found in the Desktop\n";
-        print "Component Source package on the Documentum download site.\n";
-        print "I recommend copying it to the $DM_LIB\n";
-        print "directory for simplicity.\n";
-    }
-
-    print "\nEnter the path to the $dmcl library file:\n\t[$DM_LIB] ==>";
+    print "\n\n$DMCL library file:\n";
+    print "------------------------\n";
+    print "*** NOTE *** The $DMCL library file is located in the\n";
+    print "Documentum\\share\\clients\\win\\32 directory on the \n";
+    print "Content Server. I recommend copying it to the \n";
+    print "$DM_LIB directory for simplicity.\n";
+    print "\nEnter the path to the $DMCL library file:\n";
+    print "\t[$DM_LIB] ==>";
     chomp($ans = <STDIN>);
     if ($ans =~ /\w+/) {
         $DM_LIB = $ans;
-    } else {
-        ## noop;
     }
 
-    # check for dmcl library file
-    if (! -e "$DM_LIB\\$dmcl") {
-        warn "\n*** WARNING *** Could not find $DM_LIB\\$dmcl.\nThe module will not make without " .
-             "$dmcl.\nPlease copy $dmcl to the $DM_LIB directory.\n";
+    # check for DMCL library file
+    if (! -e "$DM_LIB\\$DMCL") {
+        warn "\n*** WARNING *** Could not find $DM_LIB\\$DMCL.\nThe module will not make without " .
+             "$DMCL.\nPlease copy $DMCL to the $DM_LIB directory.\n";
     }
 
 	# Path to dmapp.h.
 	$DM_INCLUDE = "$DM_HOME\\shared";
 
-    print "\n\n\n---------------------------------------------------\n";
-    print "dmapp.h header file:\n\n";
-
-    if ($dmcl =~ /32/) {
-        print "The dmapp.h header file is located in the\n";
-        print "docpage builder\\samples\\server\\unix\\c directory of the \n";
-        print "DocPage Builder CD.  ";
-    } else {
-        print "The dmapp.h header file is located in the \\share\\sdk\\include\n";
-        print "directory on the Content Server.  ";
-    }
-
-    print "I recommend copying it to the \n$DM_INCLUDE ";
-    print "directory for simplicity.\n";
-
-    print "\nEnter the path to the dmapp.h header file:\n\t[$DM_INCLUDE] ==>";
+    print "\n\ndmapp.h header file:\n";
+    print "--------------------\n";
+    print "*** NOTE *** The dmapp.h header file is located in the\n";
+    print "Documentum\\share\\sdk\\include directory on the Content\n";
+    print "Server. I recommend copying it to the \n";
+    print "$DM_INCLUDE directory for simplicity.\n";
+    print "\nEnter the path to the dmapp.h header file:\n";
+    print "\t[$DM_INCLUDE] ==>";
     chomp($ans = <STDIN>);
     if ($ans =~ /\w+/) {
         $DM_INCLUDE = $ans;
-    } else {
-        ## noop;
     }
 
     # check for api header file
@@ -116,7 +86,7 @@ if ($OS =~ /Win/i) {
     $CPP_INCS = $inc;
     $DM_INCLUDE = "-I\"$DM_INCLUDE\"";
 	$CPP_LIBS = $lib;
-	$DM_CLIENT_LIBS = "-L\"$DM_LIB\" -l$dmcl";
+	$DM_CLIENT_LIBS = "-L\"$DM_LIB\" -l$DMCL";
     # Not used for Win32 nmake
 	$LD_LIBS = "";
 	$DM_RPC_LIBS = "";
@@ -170,7 +140,7 @@ elsif ($OS =~ /hpux/i) {
 	# Path to directory where dmapp.h lives.
 	$DM_INCLUDE = "-I$DM_HOME/include";
 
-	$DM_CLIENT_LIBS = "-L$DM_LIB -ldmcl40 -lc";
+	$DM_CLIENT_LIBS = "-L$DM_LIB -lDMCL40 -lc";
 	$DM_RPC_LIBS = "-L$DM_LIB -lnwrpc -lnwstcp";
 	$OS_LIBS = "-lsocket -lnsl -lintl";
 	$CPP_LIBS = "-lC";
@@ -179,17 +149,54 @@ elsif ($OS =~ /hpux/i) {
 	$CCFLAGS = '+DA1.1 +DS2.0 -ext -D_REENTRANT -D_PTHREAD_DRAFT4 -DSYSV -Dhpux -Dunix=unix -DOS_UNIX -DTHREADED_UNIX -DVDK_CE_ANSI -DEBHPUX +Z -Wl,+s,-E -D_POSIX_C_SOURCE=199506L -w +W829 -D_HPUX_SOURCE'
 }
 
+##########################################################################
+# *** Linux - Tested using Redhat Enterprise 3 with Documentum 5.3 SP1 ***
+# *** Note: Returned warning on missing -lC during perl Makefile.PL    ***
+# ***       but it worked nonetheless...                               ***
+#########################################################################
+elsif ( $OS =~ /linux/i ) {
+
+	# The path to your Documentum client installation.
+	$DM_HOME = '/documentum/product/5.3';
+
+    # dmcl.so file
+    if (! -e "$DM_HOME\\dmcl.so") {
+        warn "\n*** WARNING *** Could not find $DM_HOME\\dmcl.so.\nThe module will not make without " .
+             "dmcl.so.\n";
+    }
+
+	# This is kinda a gottcha, the Linux stuff is in unix/linux
+	# You may have to tweak these.
+
+	# Path to documentum client libraries.
+	$DM_LIB = "$DM_HOME/unix/linux";
+
+	# Path to directory where dmapp.h lives.
+	$DM_INCLUDE = "-I/documentum/share/sdk/include/";
+
+	$DM_CLIENT_LIBS = "-L$DM_LIB -ldmapi -ldmupper -ldmlower -ldmcommon -ldmupper -lcompat";
+	$DM_RPC_LIBS = "-L$DM_LIB -lnwrpc -lnwstcp";
+	$OS_LIBS = "-lsocket -lnsl -lintl";
+	$CPP_LIBS = "-lC";
+	$LD_LIBS = "-ldl";
+	$CPP_INC = "";
+	$CCFLAGS = "";
+}
+
 ##################################################################
-# Otherwise you're out of luck.  Documentum doesn't support you, so
-# how can we?
+# Otherwise you're out of luck.  If you have an environment you
+# would like included in the install process, email me your changes
+# or better yet, your makefile.pl.
 ##################################################################
 else {
 	die "$OS is not a supported platform for Db::Documentum (or for Documentum in general).\n";
 }
 
 # print config summary
-print "\n\n\n---------------------------------------------------\n";
-print "Config summary:\n\n";
+print "\n\nConfig summary:\n";
+print "---------------\n";
+print "DM_HOME = $DM_HOME\n";
+print "DM_LIB = $DM_LIB\n";
 print "DM_INCLUDE = $DM_INCLUDE\n";
 print "CPP_INCS = $CPP_INCS\n";
 print "DM_CLIENT_LIBS = $DM_CLIENT_LIBS\n";
@@ -205,6 +212,9 @@ if ($OS =~ /Win/i) {
          " double-check your environment variables to ensure all paths comply.\n\n";
 }
 
+print "Press ENTER to continue.";
+chomp($ans = <STDIN>);
+
 # write makefile
 
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
@@ -216,11 +226,11 @@ WriteMakefile(
 
 # UNIX:
 # You can also link against the shared client library if you want.  You'll need
-# to have libC.so, libdmcl.so, and libc.so in your LD_LIBRARY_PATH.  This
+# to have libC.so, libDMCL.so, and libc.so in your LD_LIBRARY_PATH.  This
 # slows things down a little bit, but drastically decreases the size of the
 # Documentum.so library.  Uncomment the LIBS expression below and comment out
 # the one above if you want to use the shared libraries.
-#    'LIBS'	=> ["-lC -ldmcl -lc"],
+#    'LIBS'	=> ["-L$DM_LIB -lC -ldmcl40 -lc"],
 
 	'DEFINE'  => '-DSQLNETV2 -DSYSV -D$OS -DOS_UNIX',
 	'INC'	  => "$DM_INCLUDE $CPP_INCS",

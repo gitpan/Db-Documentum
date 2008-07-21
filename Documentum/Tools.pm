@@ -1,7 +1,7 @@
 package Db::Documentum::Tools;
 
 # Tools.pm
-# (c) 2006 M. Scott Roth
+# (c) 2007 M. Scott Roth
 
 use Carp;
 use Exporter;
@@ -13,7 +13,7 @@ use Db::Documentum qw(:all);
 @ISA = qw(Exporter);
 @EXPORT = qw();
 
-$VERSION = '1.62';
+$VERSION = '1.64';
 $error = "";
 
 @EXPORT_OK = qw(

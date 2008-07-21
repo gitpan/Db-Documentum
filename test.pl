@@ -1,20 +1,20 @@
 #!/usr/local/bin/perl
 # Before 'make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl test.pl'
+# 'make test'. After 'make install' it should work as `perl test.pl'
 
-######################### We start with some black magic to print on failure.
+### We start with some black magic to print on failure.
 
 # Change 1..1 below to 1..last_test_to_print .
-# (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; $numtests = 15 ; print "1..$numtests\n"; }
+BEGIN { $| = 1; $numtests = 15 ; print "\nNumber of test: 1...$numtests\n"; }
 END {print "not ok 1 # Modules load.\n" unless $loaded;}
 use Db::Documentum qw(:all);
 use Db::Documentum::Tools qw(:all);
 $loaded = 1;
 $|++;
 print "ok 1 # Modules load.\n";
-######################### End of black magic.
+
+### End of black magic.
 
 # print version
 Db::Documentum::version;
@@ -22,18 +22,20 @@ Db::Documentum::version;
 $counter = 2;
 $success = 1;
 
-if (! $ENV{'DMCL_CONFIG'}) {
-	print "Enter the path to your DMCL_CONFIG file: ";
-	chomp ($dmcl_config = <STDIN>);
+if (! $OS =~ /Win/i) {
+    if (! $ENV{'DMCL_CONFIG'}) {
+	    print "Enter the path to your DMCL_CONFIG file: ";
+	    chomp ($dmcl_config = <STDIN>);
 
-	if (-r $dmcl_config) {
-	    $ENV{'DMCL_CONFIG'} = $dmcl_config;
-	} else {
-	    die "Can't find DMCL_CONFIG '$dmcl_config': $!.  Exiting.";
+	    if (-r $dmcl_config) {
+	        $ENV{'DMCL_CONFIG'} = $dmcl_config;
+	    } else {
+	        die "Can't find DMCL_CONFIG '$dmcl_config': $!.  Exiting.";
+	    }
 	}
+    print "Using '$ENV{'DMCL_CONFIG'}' as client config.\n";
 }
 
-print "Using '$ENV{'DMCL_CONFIG'}' as client config.\n";
 print "Docbase name: ";
 chomp ($docbase = <STDIN>);
 
@@ -43,7 +45,7 @@ chomp ($username = <STDIN>);
 print "Password (*WARNING* password will be displayed in clear text): ";
 chomp ($password = <STDIN>);
 
-# Here's the bulk of our test suite.
+# Here's the bulk of the test suite.
 print "\n\nTesting Db::Documentum module...\n";
 
 # TEST 2
@@ -97,6 +99,7 @@ tally_results($result,"$folder_id=dm_CreatePath('/Temp/Db-Documentum-Test')","Cr
 # Test dm_CreateType
 %ATTRS = (cat_id   =>  'CHAR(16)',
           locale   =>  'CHAR(255) REPEATING');
+warn("*WARNING* This test may fail if this script has run more than once\n");
 $result = dm_CreateType("my_document","dm_document",%ATTRS);
 tally_results($result,"dm_CreateType('my_document')","Create new object type");
 

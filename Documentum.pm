@@ -1,7 +1,7 @@
 package Db::Documentum;
 
 # Documentum.pm
-# (c) 2006 M. Scott Roth
+# (c) 2007 M. Scott Roth
 
 use strict;
 use Carp;
@@ -17,7 +17,7 @@ require AutoLoader;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw();
 
-$VERSION = '1.63';
+$VERSION = '1.64';
 
 @EXPORT_OK = qw(
 	dmAPIInit
